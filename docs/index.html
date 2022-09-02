@@ -1,0 +1,76 @@
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no"/>
+        <title>SpotifyMe | Home</title>
+        <link rel="icon" type="/image/png" href="favicon.png" sizes="16x16">
+        <link rel="manifest" href="manifest.json">
+        <link rel="stylesheet" href="styles.css">
+        <script src="https://apis.google.com/js/api.js"></script>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+        <!-- iOS Support -->
+        <!-- pwa-asset-generator ../icon-144x144.png -i ../index.html -m ../manifest.json -->
+        <meta name="apple-mobile-web-app-status-bar" content="#0000FF">
+        <link rel="apple-touch-icon" href="icons/apple-icon-180.png">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <script src="hydrate.js"></script>
+    </head>
+    <body>
+        <template h-template="SongListTemplate">
+            <div class="list-song">
+                <div>
+                    <img class="list-song-thumbnail" />
+                </div>
+                <div class="list-song-description">
+                    <span class="list-song-name">Home Soon</span>
+                    <span class="list-song-artists">Issues</span>
+                </div>
+                <div class="list-song-more">
+                    <span>...</span>
+                </div>
+            </div>
+        </template>
+
+        <header>
+        </header>
+        <main>
+            <div style="display: flex;">
+                <input type="text" placeholder="Search..." style="background-color: transparent; border:none; color: white"/>
+            </div>
+            
+            <div class="container-list song-list" h-model="model.songs" h-component="template: 'SongListTemplate'">
+                
+            </div>  
+        </main>
+
+    <footer>
+        <nav class="nav">
+            <a href="#" class="nav-item nav-link nav-item" spa-model="page.tabs.dashboard" spa-class="selected nav-link-active" spa-attribute="link href">
+                <span class="material-symbols-outlined">search</span>
+                <span class="nav-title">Discover</span>
+            </a>
+            <a href="#" class="nav-item nav-link" spa-model="page.tabs.labels" spa-class="selected nav-link-active" spa-attribute="link href">
+                <span class="material-symbols-outlined">play_circle</span>
+                <span class="nav-title">Listen</span>
+            </a>
+            <a href="#" class="nav-item nav-link" spa-model="page.tabs.transactions" spa-class="selected nav-link-active" spa-attribute="link href">
+                <span class="material-symbols-outlined">star_rate_half</span>
+                <span class="nav-title">Ratings</span>
+            </a>
+            <a href="#" class="nav-item nav-link" spa-model="page.tabs.budgets" spa-class="selected nav-link-active" spa-attribute="link href">
+                <span class="material-symbols-outlined">queue_music</span>
+                <span class="nav-title">Recent</span>
+            </a>
+            <a href="#" class="nav-item nav-link" spa-model="page.tabs.budgets" spa-class="selected nav-link-active" spa-attribute="link href">
+                <span class="material-symbols-outlined">settings</span>
+                <span class="nav-title">Settings</span>
+            </a>
+        </nav>
+    </footer>
+
+    <script src="app.js">
+
+    </script>
+
+    </body>
+</html>

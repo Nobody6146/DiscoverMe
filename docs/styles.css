@@ -1,0 +1,107 @@
+:root {
+    --nav-height: 55px;
+    --container-padding: 10px;
+    --color-text: white;
+    --color-compliment: #959393;
+    --color-contrast: royalblue;
+    --color-background: #303030;
+}
+body {
+    margin: 0;
+    -webkit-tap-highlight-color: transparent;
+    padding: 0 0 0 0;
+    background-color: var(--color-background);
+    font-family: sans-serif;
+    color: var(--color-text);
+}
+main {
+    margin: var(--container-padding) var(--container-padding) calc(var(--nav-height) + var(--container-padding)) var(--container-padding);
+}
+
+/******Default overrides*/
+ul {
+    list-style: none;
+}
+a {
+    text-decoration: none;
+    color: inherit;
+}
+@media(hover: hover)
+{
+    a:hover {
+        color: white;
+    }
+}
+@media(hover: none)
+{
+    a:active {
+        color: white;
+    }
+}
+::placeholder {
+    color: white;
+}
+
+/*****Navigation Elements*/
+nav {
+    position: fixed;
+    width: 100%;
+    height: var(--nav-height);
+    background-color: var(--color-background);
+    box-shadow: 0 0 3px rgba(9, 9, 9, 0.5);
+    display: flex;
+    overflow-x: auto;
+    z-index: 2;
+    bottom: 0;
+}
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-contrast);
+    overflow: hidden;
+}
+.nav-icon {
+    font-size: 21px;
+}
+.nav-link {
+    flex-grow: 1;
+    min-width: 50px;
+}
+
+/****Container Lists*/
+.container-list {
+    width: 100%;
+}
+.list-song {
+    width: 100%;
+    display: flex;
+}
+.list-song > div {
+    margin: var(--container-padding);
+}
+.list-song-thumbnail {
+    width:50px;
+    height:50px;
+}
+.list-song-description {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    align-items: flex-start;
+    flex-grow: 1;
+}
+.list-song-name {
+
+}
+.list-song-artists {
+    color: var(--color-compliment);
+    font-size: smaller;
+}
+.list-song-more {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-grow: 0;
+}
