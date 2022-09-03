@@ -15,7 +15,7 @@ for(let i = 0; i < 20; i++)
         id: `s${i}`,
         name: `Song ${i}`,
         artists: `Artist ${i}`,
-        albumCover: "https://www.amazon.com/Love-Death-Used/dp/B0009J2SBG",
+        albumCover: "https://upload.wikimedia.org/wikipedia/en/1/1b/Issues_Headspace.jpg",
     });
 let model = hydrate.bind("model");
 model.songs = songs;

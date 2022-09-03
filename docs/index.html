@@ -19,11 +19,11 @@
         <template h-template="SongListTemplate">
             <div class="list-song">
                 <div>
-                    <img class="list-song-thumbnail" />
+                    <img class="list-song-thumbnail" h-model="^" h-attribute="src: albumCover"/>
                 </div>
                 <div class="list-song-description">
-                    <span class="list-song-name">Home Soon</span>
-                    <span class="list-song-artists">Issues</span>
+                    <div class="list-song-name" h-model="^" h-property="innerHTML: name" h-event="*: console.log($detail)">Home Soon</div>
+                    <div class="list-song-artists" h-model="^" h-property="innerHTML: artists">Issues</div>
                 </div>
                 <div class="list-song-more">
                     <span>...</span>
@@ -38,9 +38,7 @@
                 <input type="text" placeholder="Search..." style="background-color: transparent; border:none; color: white"/>
             </div>
             
-            <div class="container-list song-list" h-model="model.songs" h-component="template: 'SongListTemplate'">
-                
-            </div>  
+            <div class="container-list song-list" h-model="model.songs" h-component="template: 'SongListTemplate'"></div>  
         </main>
 
     <footer>
