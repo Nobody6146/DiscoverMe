@@ -29,17 +29,17 @@ a {
 @media(hover: hover)
 {
     a:hover {
-        color: white;
+        color: var(--color-contrast);
     }
 }
 @media(hover: none)
 {
     a:active {
-        color: white;
+        color: var(--color-contrast);
     }
 }
 ::placeholder {
-    color: white;
+    color: var(--color-compliment);
 }
 
 /*****Navigation Elements*/
@@ -68,6 +68,21 @@ nav {
 .nav-link {
     flex-grow: 1;
     min-width: 50px;
+}
+.nav-link-active {
+    color: var(--color-text);
+}
+@media(hover: hover)
+{
+    a.nav-link:hover {
+        color: var(--color-text);
+    }
+}
+@media(hover: none)
+{
+    a.nav-link:active {
+        color: var(--color-text);
+    }
 }
 
 /****Container Lists*/

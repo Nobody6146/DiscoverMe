@@ -1,5 +1,5 @@
 let options = new HydrateAppOptions();
-options.debug.dispatchTimer = true;
+options.debug.dispatchTimer = false;
 let hydrate = new HydrateApp(options);
 let songs = [];
 for (let i = 0; i < 20; i++)
@@ -11,3 +11,32 @@ for (let i = 0; i < 20; i++)
     });
 let model = hydrate.bind("model");
 model.songs = songs;
+let tabs = [
+    {
+        name: "Discover",
+        link: "#discover",
+        icon: "search"
+    },
+    {
+        name: "Listen",
+        link: "#listen",
+        icon: "play_circle"
+    },
+    {
+        name: "Ratings",
+        link: "#ratings",
+        icon: "star_rate_half"
+    },
+    {
+        name: "Recent",
+        link: "#recent",
+        icon: "queue_music"
+    },
+    {
+        name: "Settings",
+        link: "#settings",
+        icon: "settings"
+    }
+];
+model.tabs = tabs;
+hydrate.route();

@@ -16,20 +16,7 @@
         <script src="hydrate.js"></script>
     </head>
     <body>
-        <template h-template="SongListTemplate">
-            <div class="list-song">
-                <div>
-                    <img class="list-song-thumbnail" h-model="^" h-attribute="src: albumCover"/>
-                </div>
-                <div class="list-song-description">
-                    <div class="list-song-name" h-model="^" h-property="innerHTML: name" h-event="*: console.log($detail)">Home Soon</div>
-                    <div class="list-song-artists" h-model="^" h-property="innerHTML: artists">Issues</div>
-                </div>
-                <div class="list-song-more">
-                    <span>...</span>
-                </div>
-            </div>
-        </template>
+        
 
         <header>
         </header>
@@ -38,31 +25,31 @@
                 <input type="text" placeholder="Search..." style="background-color: transparent; border:none; color: white"/>
             </div>
             
+            <template h-template="SongListTemplate">
+                <div class="list-song">
+                    <div>
+                        <img class="list-song-thumbnail" h-model="^" h-attribute="src: albumCover"/>
+                    </div>
+                    <div class="list-song-description">
+                        <div class="list-song-name" h-model="^" h-property="innerHTML: name">Home Soon</div>
+                        <div class="list-song-artists" h-model="^" h-property="innerHTML: artists">Issues</div>
+                    </div>
+                    <div class="list-song-more">
+                        <span>...</span>
+                    </div>
+                </div>
+            </template>
             <div class="container-list song-list" h-model="model.songs" h-component="template: 'SongListTemplate'"></div>  
         </main>
 
     <footer>
-        <nav class="nav">
-            <a href="#" class="nav-item nav-link nav-item" spa-model="page.tabs.dashboard" spa-class="selected nav-link-active" spa-attribute="link href">
-                <span class="material-symbols-outlined">search</span>
-                <span class="nav-title">Discover</span>
+        <template h-template="NavbarTabTemplate">
+            <a class="nav-item nav-link nav-item" h-model="^" h-attribute="href: link" h-route h-routing="start" h-event="*: $element.classList.toggle('nav-link-active', window.location.hash.startsWith(link))" >
+                <span class="material-symbols-outlined" h-model="^" h-property="innerText: icon">icon</span>
+                <span class="nav-title" h-model="^" h-property="innerText: name">Name</span>
             </a>
-            <a href="#" class="nav-item nav-link" spa-model="page.tabs.labels" spa-class="selected nav-link-active" spa-attribute="link href">
-                <span class="material-symbols-outlined">play_circle</span>
-                <span class="nav-title">Listen</span>
-            </a>
-            <a href="#" class="nav-item nav-link" spa-model="page.tabs.transactions" spa-class="selected nav-link-active" spa-attribute="link href">
-                <span class="material-symbols-outlined">star_rate_half</span>
-                <span class="nav-title">Ratings</span>
-            </a>
-            <a href="#" class="nav-item nav-link" spa-model="page.tabs.budgets" spa-class="selected nav-link-active" spa-attribute="link href">
-                <span class="material-symbols-outlined">queue_music</span>
-                <span class="nav-title">Recent</span>
-            </a>
-            <a href="#" class="nav-item nav-link" spa-model="page.tabs.budgets" spa-class="selected nav-link-active" spa-attribute="link href">
-                <span class="material-symbols-outlined">settings</span>
-                <span class="nav-title">Settings</span>
-            </a>
+        </template>
+        <nav class="nav" h-model="model.tabs" h-component="template: 'NavbarTabTemplate'">
         </nav>
     </footer>
 

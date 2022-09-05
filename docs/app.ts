@@ -1,5 +1,5 @@
 let options = new HydrateAppOptions();
-options.debug.dispatchTimer = true;
+options.debug.dispatchTimer = false;
 let hydrate = new HydrateApp(options);
 
 interface SongListItem {
@@ -18,4 +18,40 @@ for(let i = 0; i < 20; i++)
         albumCover: "https://upload.wikimedia.org/wikipedia/en/1/1b/Issues_Headspace.jpg",
     });
 let model = hydrate.bind("model");
+
+interface AppNavbarTab {
+    name:string;
+    link:string;
+    icon:string;
+}
 model.songs = songs;
+let tabs:AppNavbarTab[] = [
+    {
+        name: "Discover",
+        link: "#discover",
+        icon: "search"
+    },
+    {
+        name: "Listen",
+        link: "#listen",
+        icon: "play_circle"
+    },
+    {
+        name: "Ratings",
+        link: "#ratings",
+        icon: "star_rate_half"
+    },
+    {
+        name: "Recent",
+        link: "#recent",
+        icon: "queue_music"
+    },
+    {
+        name: "Settings",
+        link: "#settings",
+        icon: "settings"
+    }
+];
+model.tabs = tabs;
+
+hydrate.route();

@@ -119,7 +119,8 @@ class HydrateElementTrackingEvent extends CustomEvent {
     constructor(detail) {
         super(`hydrate.${detail.type}`, {
             detail: detail,
-            bubbles: true
+            bubbles: true,
+            cancelable: true
         });
     }
 }
@@ -127,7 +128,8 @@ class HydrateModelEvent extends CustomEvent {
     constructor(detail) {
         super(`hydrate.${detail.type}`, {
             detail: detail,
-            bubbles: true
+            bubbles: true,
+            cancelable: true
         });
     }
 }
@@ -135,7 +137,8 @@ class HydrateRouteEvent extends CustomEvent {
     constructor(detail) {
         super(`hydrate.${detail.type}`, {
             detail: detail,
-            bubbles: true
+            bubbles: true,
+            cancelable: true
         });
     }
 }
@@ -143,7 +146,8 @@ class HydrateElementMutationEvent extends CustomEvent {
     constructor(detail) {
         super(`hydrate.${detail.type}`, {
             detail: detail,
-            bubbles: true
+            bubbles: true,
+            cancelable: true
         });
     }
 }
@@ -151,7 +155,8 @@ class HydrateElementEventListenerEvent extends CustomEvent {
     constructor(detail) {
         super(`hydrate.${detail.type}`, {
             detail: detail,
-            bubbles: true
+            bubbles: true,
+            cancelable: true
         });
     }
 }
@@ -159,7 +164,8 @@ class HydrateElementInputEvent extends CustomEvent {
     constructor(detail) {
         super(`hydrate.${detail.type}`, {
             detail: detail,
-            bubbles: true
+            bubbles: true,
+            cancelable: true
         });
     }
 }
@@ -242,6 +248,132 @@ class HydrateRouteEventDetails extends HydrateEventDetails {
         this.request = request;
     }
 }
+class HydrateRouteRequest {
+    hydrate;
+    path;
+    url;
+    pathname;
+    search;
+    hash;
+    state;
+    response; //Empty field where you can attach any data needed by your handling code
+    #finished;
+    #resolved;
+    #rejected;
+    #redirectRequest;
+    constructor(hydrate, url, state, finished) {
+        this.hydrate = hydrate;
+        this.path = this.#determineRoutePath(url);
+        this.pathname = url.pathname;
+        this.search = url.search;
+        this.hash = url.hash;
+        this.url = url.href;
+        this.state = state;
+        this.response = null;
+        this.#finished = finished;
+        this.#resolved = false;
+        this.#rejected = false;
+        this.#redirectRequest = null;
+    }
+    #determineRoutePath(url) {
+        return !this.hydrate.options.router.hashRouting ? url.pathname
+            : (url.hash === "" ? "#" : url.hash);
+    }
+    #routeToRegex(route) {
+        if (!route == null || route === "")
+            return new RegExp(".*");
+        let regex = route.replace(/\//g, "\\/").replace(/:\w+/g, "(.+)");
+        return RegExp("^" + regex + "$");
+    }
+    #getRouteParams(route, match) {
+        let params = {};
+        let keys = route.match(/:(\w+)/g);
+        if (keys)
+            for (let i = 0; i < keys.length; i++)
+                params[keys[i].substring(1)] = match[i + 1];
+        return params;
+    }
+    ;
+    #getQueryParams(search) {
+        let query = {};
+        location.search.substring(1, search.length).split("&").forEach(x => {
+            let [name, value] = x.split("=");
+            if (name === "")
+                return;
+            let variable = query[name];
+            if (variable == null)
+                query[name] = value;
+            else {
+                if (!Array.isArray(variable))
+                    query[name] = [variable];
+                query[name].push(value);
+            }
+        });
+        return query;
+    }
+    get handled() {
+        return this.resolved || this.rejected || this.redirected;
+    }
+    get resolved() {
+        return this.#resolved;
+    }
+    get redirected() {
+        return this.#redirectRequest != null;
+    }
+    get rejected() {
+        return this.#rejected;
+    }
+    /**
+     * Attempts to resolve the route. If it fails, you'll return null
+     */
+    match(uri, ...routes) {
+        let url = new URL(uri);
+        let results = [];
+        let path = this.#determineRoutePath(url);
+        for (let route of routes) {
+            if (typeof route === "string") {
+                route = {
+                    path: route
+                };
+            }
+            let regexRoute = this.#routeToRegex(route.path);
+            let match = path.match(regexRoute);
+            if (match)
+                results.push({
+                    url: path,
+                    route: route,
+                    params: this.#getRouteParams(route.path, match),
+                    query: this.#getQueryParams(url.search),
+                });
+        }
+        return results.length > 0
+            ? results : null;
+    }
+    resolve() {
+        this.#resolved = true;
+        this.#rejected = false;
+        this.#redirectRequest = null;
+        if (this.#finished())
+            this.hydrate.dispatch(this.hydrate.root, "routing.resolve", undefined, this);
+    }
+    reject() {
+        this.#resolved = false;
+        this.#rejected = true;
+        this.#redirectRequest = null;
+        if (this.#finished())
+            this.hydrate.dispatch(this.hydrate.root, "routing.reject", undefined, this);
+    }
+    redirect(url, state) {
+        this.#resolved = false;
+        this.#rejected = false;
+        this.#redirectRequest = {
+            url: url ?? this.#redirectRequest?.url,
+            state: state ?? this.#redirectRequest?.state
+        };
+        if (this.#finished())
+            this.hydrate.route(this.#redirectRequest.url, this.#redirectRequest.state);
+    }
+}
 class HydrateApp {
     #dispatchId = 0;
     #options;
@@ -295,84 +427,25 @@ class HydrateApp {
         this.#navigateTo(location.href, state);
     }
     #navigateTo(uri, state) {
-        const app = this;
         let url = new URL(uri);
-        let request = {
-            path: this.#determineRoutePath(url),
-            pathname: url.pathname,
-            search: url.search,
-            hash: url.hash,
-            url: uri,
-            state: state,
-            match: app.match.bind(app),
-            resolve: function () {
-                app.#dispatch(app.#root, "routing.resolve", undefined, request);
-            },
-            reject: function () {
-                app.#dispatch(app.#root, "routing.reject", undefined, request);
-            },
-            response: null
+        let finished = false;
+        let isFinished = function () {
+            return finished;
         };
-        this.#dispatch(this.#root, "routing.start", undefined, request);
-    }
-    #determineRoutePath(url) {
-        return !this.#options.router.hashRouting ? url.pathname
-            : (url.hash === "" ? "#" : url.hash);
+        let request = new HydrateRouteRequest(this, url, state, isFinished);
+        let preventedDefault = this.dispatch(this.#root, "routing.start", undefined, request);
+        finished = true;
+        if (preventedDefault)
+            return;
+        if (request.resolved)
+            return request.resolve();
+        if (request.rejected)
+            return request.reject();
+        if (request.redirected)
+            return request.redirect();
     }
     #popStateListener(event) {
         this.#navigateTo(window.location.href, event.state);
-    }
-    /**
-     * Attempts to resolve the route. If it fails, you'll return null
-     */
-    match(url, ...routes) {
-        let results = [];
-        let path = this.#determineRoutePath(url);
-        for (let route of routes) {
-            let regexRoute = this.#routeToRegex(route);
-            let match = path.match(regexRoute);
-            if (match)
-                results.push({
-                    url: path,
-                    route: route,
-                    params: this.#getRouteParams(route, match),
-                    query: this.#getQueryParams(url.search),
-                });
-        }
-        return results.length > 0
-            ? results : null;
-    }
-    #routeToRegex(route) {
-        if (!route == null || route === "")
-            return new RegExp(".*");
-        let regex = route.replace(/\//g, "\\/").replace(/:\w+/g, "(.+)");
-        return RegExp("^" + regex + "$");
-    }
-    #getRouteParams(route, match) {
-        let params = {};
-        let keys = route.match(/:(\w+)/g);
-        if (keys)
-            for (let i = 0; i < keys.length; i++)
-                params[keys[i].substring(1)] = match[i + 1];
-        return params;
-    }
-    ;
-    #getQueryParams(search) {
-        let query = {};
-        location.search.substring(1, location.search.length).split("&").forEach(x => {
-            let [name, value] = x.split("=");
-            if (name === "")
-                return;
-            let variable = query[name];
-            if (variable == null)
-                query[name] = value;
-            else {
-                if (!Array.isArray(variable))
-                    query[name] = [variable];
-                query[name].push(value);
-            }
-        });
-        return query;
     }
     /**
      *
@@ -450,7 +523,7 @@ class HydrateApp {
             this.unbind(name);
         let proxy = this.#makeProxy(state, name, undefined);
         this.#models[name] = proxy;
-        let promise = this.#dispatch(this.#root, "bind", name, undefined);
+        let promise = this.dispatch(this.#root, "bind", name, undefined);
         //await promise;
         return proxy;
         //     resolve(proxy);
@@ -466,7 +539,7 @@ class HydrateApp {
         let baseName = this.name(this.base(model));
         if (baseName == undefined)
             return; // Promise.reject("model not found");
-        this.#dispatch(this.#root, "unbind", baseName, undefined);
+        this.dispatch(this.#root, "unbind", baseName, undefined);
         delete this.#models[baseName];
         //return await promise;
     }
@@ -524,7 +597,7 @@ class HydrateApp {
                 //     return;
                 let propName = (typeof prop === 'symbol') ? prop.toString() : prop;
                 //app.dispatch("set", proxy, propName, previousValue, app.root, "all");
-                app.#dispatch(app.#root, "set", name + "." + propName, undefined);
+                app.dispatch(app.#root, "set", name + "." + propName, undefined);
                 //TODO IMMEDIATELY WORKING ON
                 //Change previous state to only store previous prop state
                 //Only way to gaurentee a true "copy" and really the only useful part
@@ -537,7 +610,7 @@ class HydrateApp {
                         delete models[prop];
                     let propName = (typeof prop === 'symbol') ? prop.toString() : prop;
                     //app.dispatch("unbind", proxy, propName, property, app.root, "all");
-                    app.#dispatch(app.#root, "unbind", name + "." + propName, undefined);
+                    app.dispatch(app.#root, "unbind", name + "." + propName, undefined);
                 }
                 return true;
             }
@@ -626,15 +699,15 @@ class HydrateApp {
                                 if (!newTrack) {
                                     //Wasn't a new track, but a core value changed, so rebind the element
                                     let modelName = element.getAttribute(modelAttribute);
-                                    this.#dispatch(element, "bind", modelName, undefined);
+                                    this.dispatch(element, "bind", modelName, undefined);
                                 }
                             }
                             else
                                 untrackableElements.add(mutation.target);
                         }
-                        this.#dispatch(mutation.target, "mutation.parent.attribute", undefined, mutation);
-                        this.#dispatch(mutation.target, "mutation.target.attribute", undefined, mutation);
-                        this.#dispatch(mutation.target, "mutation.child.attribute", undefined, mutation);
+                        this.dispatch(mutation.target, "mutation.parent.attribute", undefined, mutation);
+                        this.dispatch(mutation.target, "mutation.target.attribute", undefined, mutation);
+                        this.dispatch(mutation.target, "mutation.child.attribute", undefined, mutation);
                         break;
                     }
                 case "childList":
@@ -648,12 +721,11 @@ class HydrateApp {
                             let elements = node.querySelectorAll(trackableSelector);
                             for (let element of elements)
                                 this.#trackElement(element);
-                            //this.#dispatch(node, "bind", modelName, this.state(modelName), undefined);
                         });
                         if (addedElement) {
-                            this.#dispatch(mutation.target, "mutation.parent.added", undefined, mutation);
-                            this.#dispatch(mutation.target, "mutation.target.added", undefined, mutation);
-                            this.#dispatch(mutation.target, "mutation.child.added", undefined, mutation);
+                            this.dispatch(mutation.target, "mutation.parent.added", undefined, mutation);
+                            this.dispatch(mutation.target, "mutation.target.added", undefined, mutation);
+                            this.dispatch(mutation.target, "mutation.child.added", undefined, mutation);
                         }
                         let removedElement = false;
                         for (let node of mutation.removedNodes) {
@@ -666,17 +738,17 @@ class HydrateApp {
                                 this.#untrackElement(element);
                         }
                         if (removedElement) {
-                            this.#dispatch(mutation.target, "mutation.parent.removed", undefined, mutation);
-                            this.#dispatch(mutation.target, "mutation.target.removed", undefined, mutation);
-                            this.#dispatch(mutation.target, "mutation.child.removed", undefined, mutation);
+                            this.dispatch(mutation.target, "mutation.parent.removed", undefined, mutation);
+                            this.dispatch(mutation.target, "mutation.target.removed", undefined, mutation);
+                            this.dispatch(mutation.target, "mutation.child.removed", undefined, mutation);
                         }
                         break;
                     }
                 case "characterData":
                     {
-                        this.#dispatch(mutation.target, "mutation.parent.characterdata", undefined, mutation);
-                        this.#dispatch(mutation.target, "mutation.target.characterdata", undefined, mutation);
-                        this.#dispatch(mutation.target, "mutation.child.characterdata", undefined, mutation);
+                        this.dispatch(mutation.target, "mutation.parent.characterdata", undefined, mutation);
+                        this.dispatch(mutation.target, "mutation.target.characterdata", undefined, mutation);
+                        this.dispatch(mutation.target, "mutation.child.characterdata", undefined, mutation);
                         break;
                     }
             }
@@ -699,7 +771,7 @@ class HydrateApp {
         let state = this.state(modelName);
         if (!(state instanceof Object))
             return;
-        this.#dispatch(target, "input", modelName, event);
+        this.dispatch(target, "input", modelName, event);
         // let modelEvent = this.#createEvent(target, "input", this.#determineEventDetailProperties(modelName, "property"), null, undefined);
         // let args = this.parseAttributeArguments(target, this.attribute(this.#options.attribute.names.input));
         // for(let i = 0; i < args.length; i++)
@@ -765,9 +837,9 @@ class HydrateApp {
             //     return;
             if (arg.field !== "*" && arg.field !== eventDetails.type)
                 return;
-            if (eventDetails.element.hasAttribute(this.attribute(this.#options.attribute.names.routing))) {
-                let url = new URL(eventDetails.request.url);
-                if (this.#elementIsHandledByRoute(eventDetails.element, eventDetails.type, url) !== "handled")
+            if (this.#isRoutingEvent(eventDetails.type)) {
+                var routeRequest = eventDetails?.request;
+                if (this.#elementIsHandledByRoute(eventDetails.element, eventDetails.type, routeRequest) !== "handled")
                     return;
             }
             eventDetails.hydrate.resolveArgumentValue(eventDetails, arg, null);
@@ -789,12 +861,13 @@ class HydrateApp {
         this.#options.attribute.handlers.set(this.attribute(this.#options.attribute.names.component), (arg, eventDetails) => {
             if (eventDetails.modelName !== "" && eventDetails.model == null)
                 return;
-            let isRouting = this.#isRoutingEvent(eventDetails.type);
-            if (eventDetails.element.hasAttribute(this.attribute(this.#options.attribute.names.routing))) {
-                if (!isRouting)
-                    return;
-                let url = new URL(eventDetails.request.url);
-                switch (this.#elementIsHandledByRoute(eventDetails.element, eventDetails.type, url)) {
+            let hasRoutintAttribute = eventDetails.element.hasAttribute(this.attribute(this.#options.attribute.names.routing));
+            //Only allow non-route events and non-routing components or the opposite
+            if (this.#isRoutingEvent(eventDetails.type) !== hasRoutintAttribute)
+                return;
+            if (hasRoutintAttribute) {
+                var routeRequest = eventDetails?.request;
+                switch (this.#elementIsHandledByRoute(eventDetails.element, eventDetails.type, routeRequest)) {
                     case "unhandled": {
                         let element = eventDetails.element;
                         while (element.firstChild)
@@ -849,9 +922,9 @@ class HydrateApp {
                 return false;
         }
     }
-    #elementIsHandledByRoute(element, eventType, url) {
-        if (url == null)
-            url = new URL(window.location.href);
+    #elementIsHandledByRoute(element, eventType, routeRequest) {
+        if (!this.#isRoutingEvent(eventType))
+            return "unchanged";
         let routeAttribute = this.attribute(this.#options.attribute.names.route);
         let routingAttribute = this.attribute(this.#options.attribute.names.routing);
         let routing = element.getAttribute(routingAttribute);
@@ -867,8 +940,8 @@ class HydrateApp {
         }
         let routingType = eventType.substring(eventType.lastIndexOf(".") + 1);
         let selector = `[${routingAttribute}~=${routingType}]`;
-        if (this.match(url, route) == null)
-            return element.matches(selector) ? "unhandled" : "unchanged";
+        if (routeRequest.match(routeRequest.url, { path: route }) == null)
+            return "unhandled";
         if (routerElement === element && routing == null)
             return "unchanged";
         let children = routerElement === element
@@ -1074,7 +1147,7 @@ class HydrateApp {
         if (newTrack) {
             //Send a track event
             let modelName = element.getAttribute(this.attribute(this.#options.attribute.names.model)) ?? undefined;
-            this.#dispatch(element, "track", modelName, undefined);
+            this.dispatch(element, "track", modelName, undefined);
         }
         return newTrack;
     }
@@ -1095,7 +1168,7 @@ class HydrateApp {
             return;
         //Send an untrack event
         let modelName = element.getAttribute(this.attribute(this.#options.attribute.names.model)) ?? undefined;
-        if (this.#dispatch(element, "untrack", modelName, undefined))
+        if (this.dispatch(element, "untrack", modelName, undefined))
             return;
         //Allow the element not to detach if we prevented the default behavior
         this.#htmlExcecuters.delete(element);
@@ -1122,7 +1195,7 @@ class HydrateApp {
         let modelPath = element.getAttribute(modelAttribute);
         const app = this;
         let listener = event => {
-            app.#dispatch(element, "on", modelPath, event);
+            app.dispatch(element, "on", modelPath, event);
         };
         elementListeners.set(eventType, listener);
         element.addEventListener(eventType, listener);
@@ -1416,7 +1489,7 @@ class HydrateApp {
         //TODO: filter out any conditionals, static, etc.
         return results;
     }
-    #dispatch(target, eventType, propPath, data) {
+    dispatch(target, eventType, propPath, data) {
         let dispatchId;
         let dispatchTimer;
         if (this.#options.debug.dispatchTimer) {
