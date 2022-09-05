@@ -11,6 +11,9 @@ for (let i = 0; i < 20; i++)
     });
 let model = hydrate.bind("model");
 model.songs = songs;
+model.playback = {
+    song: null //songs[0]
+};
 let tabs = [
     {
         name: "Discover",
@@ -40,3 +43,6 @@ let tabs = [
 ];
 model.tabs = tabs;
 hydrate.route();
+function playSong(song) {
+    model.playback.song = song;
+}

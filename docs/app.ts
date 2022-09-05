@@ -25,6 +25,10 @@ interface AppNavbarTab {
     icon:string;
 }
 model.songs = songs;
+model.playback = {
+    song: null//songs[0]
+}
+
 let tabs:AppNavbarTab[] = [
     {
         name: "Discover",
@@ -55,3 +59,7 @@ let tabs:AppNavbarTab[] = [
 model.tabs = tabs;
 
 hydrate.route();
+
+function playSong(song:SongListItem) {
+    model.playback.song = song;
+}

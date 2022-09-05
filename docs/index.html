@@ -26,7 +26,7 @@
             </div>
             
             <template h-template="SongListTemplate">
-                <div class="list-song">
+                <div class="list-song" h-model="^" h-on="click: playSong($state)">
                     <div>
                         <img class="list-song-thumbnail" h-model="^" h-attribute="src: albumCover"/>
                     </div>
@@ -42,9 +42,17 @@
             <div class="container-list song-list" h-model="model.songs" h-component="template: 'SongListTemplate'"></div>  
         </main>
 
+        <section class="now-playing-modal">
+
+        </section>
+
     <footer>
+        <div class="currently-playing" h-model="model.playback" h-class="hidden: song == null" h-on="click: $model.song = null">
+            <div class="container-list song-list" h-model="model.playback.song" h-component="template: 'SongListTemplate'"></div>  
+        </div>
+
         <template h-template="NavbarTabTemplate">
-            <a class="nav-item nav-link nav-item" h-model="^" h-attribute="href: link" h-route h-routing="start" h-event="*: $element.classList.toggle('nav-link-active', window.location.hash.startsWith(link))" >
+            <a class="nav-item nav-link nav-item" h-model="^" h-attribute="href: link"  h-route h-routing="start" h-event="*: $element.classList.toggle('nav-link-active', window.location.hash.startsWith(link))" >
                 <span class="material-symbols-outlined" h-model="^" h-property="innerText: icon">icon</span>
                 <span class="nav-title" h-model="^" h-property="innerText: name">Name</span>
             </a>
