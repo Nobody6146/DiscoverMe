@@ -1,0 +1,14 @@
+<template>
+    <div class="list-song" h-model="^" h-on="click: playSong($state)">
+        <div>
+            <img class="song-thumbnail" h-model="^" h-attribute="src: albumCover"/>
+        </div>
+        <div class="song-description">
+            <div class="song-name" h-model="^" h-property="innerHTML: name">Home Soon</div>
+            <div class="song-artists" h-model="^" h-property="innerHTML: artists">Issues</div>
+        </div>
+        <div class="song-more">
+            <span>...</span>
+        </div>
+    </div>
+</template>

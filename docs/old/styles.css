@@ -57,7 +57,7 @@ a {
 /****Universal styles*/
 
 /*****Navigation Elements*/
-.nav {
+nav {
     /* position: fixed; */
     width: 100%;
     height: var(--nav-height);

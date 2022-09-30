@@ -1,0 +1,6 @@
+<template class="nav" h-model="model.tabs">
+    <a class="nav-item nav-link nav-item" h-model="^" h-attribute="href: link"  h-route h-routing="start" h-event="*: $element.classList.toggle('nav-link-active', window.location.hash.startsWith(link))" >
+        <span class="material-symbols-outlined" h-model="^" h-property="innerText: icon">icon</span>
+        <span class="nav-title" h-model="^" h-property="innerText: name">Name</span>
+    </a>
+</template>

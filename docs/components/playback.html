@@ -1,0 +1,41 @@
+<template  style="position: fixed; z-index: 2; height: 100vh;" h-model="model.playback">
+    <div class="playback-modal" h-model="model.playback" h-class="hidden: !modal">
+        <div>
+            <span class="material-symbols-outlined" style="font-size: 200%;" h-model h-on="click: viewNowPlaying(false)">expand_more</span>
+        </div>
+        <div style="margin: var(--container-padding); display: flex; flex-direction: column; gap: var(--container-padding); flex-grow: 1; justify-content: center;">
+            <div style="width: 100%; display: flex; justify-content: center;">
+                <div style="display: flex; flex-direction: column; gap: var(--container-padding);">
+                    <img class="album-cover" h-model="model.playback.song" h-attribute="src: albumCover"/>
+                    <div style="font-size: large; display: flex; flex-direction: column;">
+                        <div class="song-name" h-model="model.playback.song" h-property="innerHTML: name">Home Soon</div>
+                        <div class="song-artists" h-model="model.playback.song" h-property="innerHTML: artists">Issues</div>
+                    </div>
+                </div>
+            </div>
+            <div style="width: 100%; display: flex; flex-direction: column; justify-items: center;">
+                <div style="display: flex; justify-content: center;">
+                </div>
+            </div>
+            <div style="width: 100%; display: flex; justify-content: center;">
+                <div style="width: 100%; display: flex; flex-direction: column; gap: var(--container-padding);">
+                    <div style="display: flex; justify-content: center;">
+                        <app-rate-song h-model="model.playback.song" h-duplicate="5"></app-rate-song>
+                    </div>
+                    <div style="display: flex; width: 100%; justify-content: space-evenly;">
+                        <span class="playback-button material-symbols-outlined" h-model="model.playback"
+                            h-on="click: previousSong()">skip_previous
+                        </span>
+                        <span class="playback-button material-symbols-outlined" h-model="model.playback"
+                            h-property="innerText: playing ? 'pause_circle' : 'play_circle'"
+                            h-on="click: togglePlay()">
+                        </span>
+                        <span class="playback-button material-symbols-outlined" h-model="model.playback"
+                            h-on="click: nextSong()">skip_next
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>

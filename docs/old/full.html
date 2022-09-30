@@ -1,0 +1,389 @@
+<html lang="en"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no">
+    <title>DiscoverMe | Home</title>
+    <script src="https://apis.google.com/js/api.js"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+    <link rel="icon" type="/image/png" href="favicon.png" sizes="16x16">
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="styles.css">
+    <!-- iOS Support -->
+    <!-- pwa-asset-generator ../icon-144x144.png -i ../index.html -m ../manifest.json -->
+    <meta name="apple-mobile-web-app-status-bar" content="#0000FF">
+    <link rel="apple-touch-icon" href="icons/apple-icon-180.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <script src="hydrate.js"></script>
+</head>
+<body>
+    
+
+    <header>
+    </header>
+    <main>
+        <div style="display: flex;">
+            <input type="text" placeholder="Search..." style="background-color: transparent; border:none; color: white">
+        </div>
+        
+        <template h-template="SongListTemplate">
+            <div class="list-song" h-model="^" h-on="click: playSong($state)">
+                <div>
+                    <img class="song-thumbnail" h-model="^" h-attribute="src: albumCover">
+                </div>
+                <div class="song-description">
+                    <div class="song-name" h-model="^" h-property="innerHTML: name">Home Soon</div>
+                    <div class="song-artists" h-model="^" h-property="innerHTML: artists">Issues</div>
+                </div>
+                <div class="song-more">
+                    <span>...</span>
+                </div>
+            </div>
+        </template>
+        <div class="container-list song-list" h-model="model.songs" h-component="template: 'SongListTemplate'">
+            <div class="list-song" h-model="model.songs.0" h-on="click: playSong($state)">
+                <div>
+                    <img class="song-thumbnail" h-model="model.songs.0" h-attribute="src: albumCover" src="https://upload.wikimedia.org/wikipedia/en/1/1b/Issues_Headspace.jpg">
+                </div>
+                <div class="song-description">
+                    <div class="song-name" h-model="model.songs.0" h-property="innerHTML: name">Song 0</div>
+                    <div class="song-artists" h-model="model.songs.0" h-property="innerHTML: artists">Artist 0</div>
+                </div>
+                <div class="song-more">
+                    <span>...</span>
+                </div>
+            </div>
+        
+            <div class="list-song" h-model="model.songs.1" h-on="click: playSong($state)">
+                <div>
+                    <img class="song-thumbnail" h-model="model.songs.1" h-attribute="src: albumCover" src="https://upload.wikimedia.org/wikipedia/en/1/1b/Issues_Headspace.jpg">
+                </div>
+                <div class="song-description">
+                    <div class="song-name" h-model="model.songs.1" h-property="innerHTML: name">Song 1</div>
+                    <div class="song-artists" h-model="model.songs.1" h-property="innerHTML: artists">Artist 1</div>
+                </div>
+                <div class="song-more">
+                    <span>...</span>
+                </div>
+            </div>
+        
+            <div class="list-song" h-model="model.songs.2" h-on="click: playSong($state)">
+                <div>
+                    <img class="song-thumbnail" h-model="model.songs.2" h-attribute="src: albumCover" src="https://upload.wikimedia.org/wikipedia/en/1/1b/Issues_Headspace.jpg">
+                </div>
+                <div class="song-description">
+                    <div class="song-name" h-model="model.songs.2" h-property="innerHTML: name">Song 2</div>
+                    <div class="song-artists" h-model="model.songs.2" h-property="innerHTML: artists">Artist 2</div>
+                </div>
+                <div class="song-more">
+                    <span>...</span>
+                </div>
+            </div>
+        
+            <div class="list-song" h-model="model.songs.3" h-on="click: playSong($state)">
+                <div>
+                    <img class="song-thumbnail" h-model="model.songs.3" h-attribute="src: albumCover" src="https://upload.wikimedia.org/wikipedia/en/1/1b/Issues_Headspace.jpg">
+                </div>
+                <div class="song-description">
+                    <div class="song-name" h-model="model.songs.3" h-property="innerHTML: name">Song 3</div>
+                    <div class="song-artists" h-model="model.songs.3" h-property="innerHTML: artists">Artist 3</div>
+                </div>
+                <div class="song-more">
+                    <span>...</span>
+                </div>
+            </div>
+        
+            <div class="list-song" h-model="model.songs.4" h-on="click: playSong($state)">
+                <div>
+                    <img class="song-thumbnail" h-model="model.songs.4" h-attribute="src: albumCover" src="https://upload.wikimedia.org/wikipedia/en/1/1b/Issues_Headspace.jpg">
+                </div>
+                <div class="song-description">
+                    <div class="song-name" h-model="model.songs.4" h-property="innerHTML: name">Song 4</div>
+                    <div class="song-artists" h-model="model.songs.4" h-property="innerHTML: artists">Artist 4</div>
+                </div>
+                <div class="song-more">
+                    <span>...</span>
+                </div>
+            </div>
+        
+            <div class="list-song" h-model="model.songs.5" h-on="click: playSong($state)">
+                <div>
+                    <img class="song-thumbnail" h-model="model.songs.5" h-attribute="src: albumCover" src="https://upload.wikimedia.org/wikipedia/en/1/1b/Issues_Headspace.jpg">
+                </div>
+                <div class="song-description">
+                    <div class="song-name" h-model="model.songs.5" h-property="innerHTML: name">Song 5</div>
+                    <div class="song-artists" h-model="model.songs.5" h-property="innerHTML: artists">Artist 5</div>
+                </div>
+                <div class="song-more">
+                    <span>...</span>
+                </div>
+            </div>
+        
+            <div class="list-song" h-model="model.songs.6" h-on="click: playSong($state)">
+                <div>
+                    <img class="song-thumbnail" h-model="model.songs.6" h-attribute="src: albumCover" src="https://upload.wikimedia.org/wikipedia/en/1/1b/Issues_Headspace.jpg">
+                </div>
+                <div class="song-description">
+                    <div class="song-name" h-model="model.songs.6" h-property="innerHTML: name">Song 6</div>
+                    <div class="song-artists" h-model="model.songs.6" h-property="innerHTML: artists">Artist 6</div>
+                </div>
+                <div class="song-more">
+                    <span>...</span>
+                </div>
+            </div>
+        
+            <div class="list-song" h-model="model.songs.7" h-on="click: playSong($state)">
+                <div>
+                    <img class="song-thumbnail" h-model="model.songs.7" h-attribute="src: albumCover" src="https://upload.wikimedia.org/wikipedia/en/1/1b/Issues_Headspace.jpg">
+                </div>
+                <div class="song-description">
+                    <div class="song-name" h-model="model.songs.7" h-property="innerHTML: name">Song 7</div>
+                    <div class="song-artists" h-model="model.songs.7" h-property="innerHTML: artists">Artist 7</div>
+                </div>
+                <div class="song-more">
+                    <span>...</span>
+                </div>
+            </div>
+        
+            <div class="list-song" h-model="model.songs.8" h-on="click: playSong($state)">
+                <div>
+                    <img class="song-thumbnail" h-model="model.songs.8" h-attribute="src: albumCover" src="https://upload.wikimedia.org/wikipedia/en/1/1b/Issues_Headspace.jpg">
+                </div>
+                <div class="song-description">
+                    <div class="song-name" h-model="model.songs.8" h-property="innerHTML: name">Song 8</div>
+                    <div class="song-artists" h-model="model.songs.8" h-property="innerHTML: artists">Artist 8</div>
+                </div>
+                <div class="song-more">
+                    <span>...</span>
+                </div>
+            </div>
+        
+            <div class="list-song" h-model="model.songs.9" h-on="click: playSong($state)">
+                <div>
+                    <img class="song-thumbnail" h-model="model.songs.9" h-attribute="src: albumCover" src="https://upload.wikimedia.org/wikipedia/en/1/1b/Issues_Headspace.jpg">
+                </div>
+                <div class="song-description">
+                    <div class="song-name" h-model="model.songs.9" h-property="innerHTML: name">Song 9</div>
+                    <div class="song-artists" h-model="model.songs.9" h-property="innerHTML: artists">Artist 9</div>
+                </div>
+                <div class="song-more">
+                    <span>...</span>
+                </div>
+            </div>
+        
+            <div class="list-song" h-model="model.songs.10" h-on="click: playSong($state)">
+                <div>
+                    <img class="song-thumbnail" h-model="model.songs.10" h-attribute="src: albumCover" src="https://upload.wikimedia.org/wikipedia/en/1/1b/Issues_Headspace.jpg">
+                </div>
+                <div class="song-description">
+                    <div class="song-name" h-model="model.songs.10" h-property="innerHTML: name">Song 10</div>
+                    <div class="song-artists" h-model="model.songs.10" h-property="innerHTML: artists">Artist 10</div>
+                </div>
+                <div class="song-more">
+                    <span>...</span>
+                </div>
+            </div>
+        
+            <div class="list-song" h-model="model.songs.11" h-on="click: playSong($state)">
+                <div>
+                    <img class="song-thumbnail" h-model="model.songs.11" h-attribute="src: albumCover" src="https://upload.wikimedia.org/wikipedia/en/1/1b/Issues_Headspace.jpg">
+                </div>
+                <div class="song-description">
+                    <div class="song-name" h-model="model.songs.11" h-property="innerHTML: name">Song 11</div>
+                    <div class="song-artists" h-model="model.songs.11" h-property="innerHTML: artists">Artist 11</div>
+                </div>
+                <div class="song-more">
+                    <span>...</span>
+                </div>
+            </div>
+        
+            <div class="list-song" h-model="model.songs.12" h-on="click: playSong($state)">
+                <div>
+                    <img class="song-thumbnail" h-model="model.songs.12" h-attribute="src: albumCover" src="https://upload.wikimedia.org/wikipedia/en/1/1b/Issues_Headspace.jpg">
+                </div>
+                <div class="song-description">
+                    <div class="song-name" h-model="model.songs.12" h-property="innerHTML: name">Song 12</div>
+                    <div class="song-artists" h-model="model.songs.12" h-property="innerHTML: artists">Artist 12</div>
+                </div>
+                <div class="song-more">
+                    <span>...</span>
+                </div>
+            </div>
+        
+            <div class="list-song" h-model="model.songs.13" h-on="click: playSong($state)">
+                <div>
+                    <img class="song-thumbnail" h-model="model.songs.13" h-attribute="src: albumCover" src="https://upload.wikimedia.org/wikipedia/en/1/1b/Issues_Headspace.jpg">
+                </div>
+                <div class="song-description">
+                    <div class="song-name" h-model="model.songs.13" h-property="innerHTML: name">Song 13</div>
+                    <div class="song-artists" h-model="model.songs.13" h-property="innerHTML: artists">Artist 13</div>
+                </div>
+                <div class="song-more">
+                    <span>...</span>
+                </div>
+            </div>
+        
+            <div class="list-song" h-model="model.songs.14" h-on="click: playSong($state)">
+                <div>
+                    <img class="song-thumbnail" h-model="model.songs.14" h-attribute="src: albumCover" src="https://upload.wikimedia.org/wikipedia/en/1/1b/Issues_Headspace.jpg">
+                </div>
+                <div class="song-description">
+                    <div class="song-name" h-model="model.songs.14" h-property="innerHTML: name">Song 14</div>
+                    <div class="song-artists" h-model="model.songs.14" h-property="innerHTML: artists">Artist 14</div>
+                </div>
+                <div class="song-more">
+                    <span>...</span>
+                </div>
+            </div>
+        
+            <div class="list-song" h-model="model.songs.15" h-on="click: playSong($state)">
+                <div>
+                    <img class="song-thumbnail" h-model="model.songs.15" h-attribute="src: albumCover" src="https://upload.wikimedia.org/wikipedia/en/1/1b/Issues_Headspace.jpg">
+                </div>
+                <div class="song-description">
+                    <div class="song-name" h-model="model.songs.15" h-property="innerHTML: name">Song 15</div>
+                    <div class="song-artists" h-model="model.songs.15" h-property="innerHTML: artists">Artist 15</div>
+                </div>
+                <div class="song-more">
+                    <span>...</span>
+                </div>
+            </div>
+        
+            <div class="list-song" h-model="model.songs.16" h-on="click: playSong($state)">
+                <div>
+                    <img class="song-thumbnail" h-model="model.songs.16" h-attribute="src: albumCover" src="https://upload.wikimedia.org/wikipedia/en/1/1b/Issues_Headspace.jpg">
+                </div>
+                <div class="song-description">
+                    <div class="song-name" h-model="model.songs.16" h-property="innerHTML: name">Song 16</div>
+                    <div class="song-artists" h-model="model.songs.16" h-property="innerHTML: artists">Artist 16</div>
+                </div>
+                <div class="song-more">
+                    <span>...</span>
+                </div>
+            </div>
+        
+            <div class="list-song" h-model="model.songs.17" h-on="click: playSong($state)">
+                <div>
+                    <img class="song-thumbnail" h-model="model.songs.17" h-attribute="src: albumCover" src="https://upload.wikimedia.org/wikipedia/en/1/1b/Issues_Headspace.jpg">
+                </div>
+                <div class="song-description">
+                    <div class="song-name" h-model="model.songs.17" h-property="innerHTML: name">Song 17</div>
+                    <div class="song-artists" h-model="model.songs.17" h-property="innerHTML: artists">Artist 17</div>
+                </div>
+                <div class="song-more">
+                    <span>...</span>
+                </div>
+            </div>
+        
+            <div class="list-song" h-model="model.songs.18" h-on="click: playSong($state)">
+                <div>
+                    <img class="song-thumbnail" h-model="model.songs.18" h-attribute="src: albumCover" src="https://upload.wikimedia.org/wikipedia/en/1/1b/Issues_Headspace.jpg">
+                </div>
+                <div class="song-description">
+                    <div class="song-name" h-model="model.songs.18" h-property="innerHTML: name">Song 18</div>
+                    <div class="song-artists" h-model="model.songs.18" h-property="innerHTML: artists">Artist 18</div>
+                </div>
+                <div class="song-more">
+                    <span>...</span>
+                </div>
+            </div>
+        
+            <div class="list-song" h-model="model.songs.19" h-on="click: playSong($state)">
+                <div>
+                    <img class="song-thumbnail" h-model="model.songs.19" h-attribute="src: albumCover" src="https://upload.wikimedia.org/wikipedia/en/1/1b/Issues_Headspace.jpg">
+                </div>
+                <div class="song-description">
+                    <div class="song-name" h-model="model.songs.19" h-property="innerHTML: name">Song 19</div>
+                    <div class="song-artists" h-model="model.songs.19" h-property="innerHTML: artists">Artist 19</div>
+                </div>
+                <div class="song-more">
+                    <span>...</span>
+                </div>
+            </div>
+        </div>  
+    </main>
+
+    <template h-template="RateSongTemplate">
+        <span style="color: var(--color-text); font-size: 250%;" h-model="^" h-property="innerText: $id() <= rating ? '★' : '☆'" h-id="" h-on="click: rankSong($model, $id())">
+        </span>
+    </template>
+    <div style="position: fixed; z-index: 2; height: 100vh;" h-model="model.playback">
+        <div class="playback-modal hidden" h-model="model.playback" h-class="hidden: !modal">
+            <div>
+                <span class="material-symbols-outlined" style="font-size: 200%;" h-model="" h-on="click: viewNowPlaying(false)">expand_more</span>
+            </div>
+            <div style="margin: var(--container-padding); display: flex; flex-direction: column; gap: var(--container-padding); flex-grow: 1; justify-content: center;">
+                <div style="width: 100%; display: flex; justify-content: center;">
+                    <div style="display: flex; flex-direction: column; gap: var(--container-padding);">
+                        <img class="album-cover" h-model="model.playback.song" h-attribute="src: albumCover">
+                        <div style="font-size: large; display: flex; flex-direction: column;">
+                            <div class="song-name" h-model="model.playback.song" h-property="innerHTML: name">Home Soon</div>
+                            <div class="song-artists" h-model="model.playback.song" h-property="innerHTML: artists">Issues</div>
+                        </div>
+                    </div>
+                </div>
+                <div style="width: 100%; display: flex; flex-direction: column; justify-items: center;">
+                    <div style="display: flex; justify-content: center;">
+                    </div>
+                </div>
+                <div style="width: 100%; display: flex; justify-content: center;">
+                    <div style="width: 100%; display: flex; flex-direction: column; gap: var(--container-padding);">
+                        <div style="display: flex; justify-content: center;">
+                            <div h-model="model.playback.song" h-component="template: 'RateSongTemplate'" h-duplicate="5"></div>
+                        </div>
+                        <div style="display: flex; width: 100%; justify-content: space-evenly;">
+                            <span class="playback-button material-symbols-outlined" h-model="model.playback" h-on="click: previousSong()">skip_previous
+                            </span>
+                            <span class="playback-button material-symbols-outlined" h-model="model.playback" h-property="innerText: playing ? 'pause_circle' : 'play_circle'" h-on="click: togglePlay()">play_circle</span>
+                            <span class="playback-button material-symbols-outlined" h-model="model.playback" h-on="click: nextSong()">skip_next
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<footer>
+    <div class="currently-playing hidden" h-model="model.playback" h-class="hidden: song == null" h-on="click: viewNowPlaying(true)">
+        <div class="container-list song-list" h-model="model.playback.song" h-component="template: 'SongListTemplate'"></div>  
+    </div>
+
+    <template h-template="NavbarTabTemplate">
+        <a class="nav-item nav-link nav-item" h-model="^" h-attribute="href: link" h-route="" h-routing="start" h-event="*: $element.classList.toggle('nav-link-active', window.location.hash.startsWith(link))">
+            <span class="material-symbols-outlined" h-model="^" h-property="innerText: icon">icon</span>
+            <span class="nav-title" h-model="^" h-property="innerText: name">Name</span>
+        </a>
+    </template>
+    <nav class="nav" h-model="model.tabs" h-component="template: 'NavbarTabTemplate'">
+        <a class="nav-item nav-link nav-item" h-model="model.tabs.0" h-attribute="href: link" h-route="" h-routing="start" h-event="*: $element.classList.toggle('nav-link-active', window.location.hash.startsWith(link))" href="#discover">
+            <span class="material-symbols-outlined" h-model="model.tabs.0" h-property="innerText: icon">search</span>
+            <span class="nav-title" h-model="model.tabs.0" h-property="innerText: name">Discover</span>
+        </a>
+    
+        <a class="nav-item nav-link nav-item" h-model="model.tabs.1" h-attribute="href: link" h-route="" h-routing="start" h-event="*: $element.classList.toggle('nav-link-active', window.location.hash.startsWith(link))" href="#listen">
+            <span class="material-symbols-outlined" h-model="model.tabs.1" h-property="innerText: icon">play_circle</span>
+            <span class="nav-title" h-model="model.tabs.1" h-property="innerText: name">Listen</span>
+        </a>
+    
+        <a class="nav-item nav-link nav-item" h-model="model.tabs.2" h-attribute="href: link" h-route="" h-routing="start" h-event="*: $element.classList.toggle('nav-link-active', window.location.hash.startsWith(link))" href="#ratings">
+            <span class="material-symbols-outlined" h-model="model.tabs.2" h-property="innerText: icon">star_rate_half</span>
+            <span class="nav-title" h-model="model.tabs.2" h-property="innerText: name">Ratings</span>
+        </a>
+    
+        <a class="nav-item nav-link nav-item" h-model="model.tabs.3" h-attribute="href: link" h-route="" h-routing="start" h-event="*: $element.classList.toggle('nav-link-active', window.location.hash.startsWith(link))" href="#recent">
+            <span class="material-symbols-outlined" h-model="model.tabs.3" h-property="innerText: icon">queue_music</span>
+            <span class="nav-title" h-model="model.tabs.3" h-property="innerText: name">Recent</span>
+        </a>
+    
+        <a class="nav-item nav-link nav-item" h-model="model.tabs.4" h-attribute="href: link" h-route="" h-routing="start" h-event="*: $element.classList.toggle('nav-link-active', window.location.hash.startsWith(link))" href="#settings">
+            <span class="material-symbols-outlined" h-model="model.tabs.4" h-property="innerText: icon">settings</span>
+            <span class="nav-title" h-model="model.tabs.4" h-property="innerText: name">Settings</span>
+        </a>
+    </nav>
+</footer>
+
+<script src="app.js">
+
+</script>
+
+
+</body></html>

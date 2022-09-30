@@ -1,0 +1,8 @@
+<template>
+    <footer>
+        <div class="currently-playing" h-model="model.playback" h-class="hidden: song == null" h-on="click: viewNowPlaying(true)">
+            <app-song-list class="container-list song-list" h-model="model.playback.song"></app-song-list>  
+        </div>
+        <app-navbar></app-navbar>
+    </footer>
+</template>

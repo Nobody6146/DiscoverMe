@@ -14,99 +14,20 @@
         <link rel="apple-touch-icon" href="icons/apple-icon-180.png">
         <meta name="apple-mobile-web-app-capable" content="yes">
         <script src="hydrate.js"></script>
+        <script src="app.js" defer></script>
     </head>
     <body>
-        
+        <template h-template="app-templates" h-source="components.html"></template>
+        <app-templates></app-templates>
 
-        <header>
-        </header>
         <main>
             <div style="display: flex;">
                 <input type="text" placeholder="Search..." style="background-color: transparent; border:none; color: white"/>
             </div>
-            
-            <template h-template="SongListTemplate">
-                <div class="list-song" h-model="^" h-on="click: playSong($state)">
-                    <div>
-                        <img class="song-thumbnail" h-model="^" h-attribute="src: albumCover"/>
-                    </div>
-                    <div class="song-description">
-                        <div class="song-name" h-model="^" h-property="innerHTML: name">Home Soon</div>
-                        <div class="song-artists" h-model="^" h-property="innerHTML: artists">Issues</div>
-                    </div>
-                    <div class="song-more">
-                        <span>...</span>
-                    </div>
-                </div>
-            </template>
-            <div class="container-list song-list" h-model="model.songs" h-component="template: 'SongListTemplate'"></div>  
+            <app-song-list class="container-list song-list" h-model="model.songs"></app-song-list>  
         </main>
-
-        <template h-template="RateSongTemplate">
-            <span style="color: var(--color-text); font-size: 250%;" h-model="^" h-property="innerText: $id() <= rating ? '&#9733' : '&#9734'" h-id
-                h-on="click: rankSong($model, $id())">
-            </span>
-        </template>
-        <div style="position: fixed; z-index: 2; height: 100vh;" h-model="model.playback">
-            <div class="playback-modal" h-model="model.playback" h-class="hidden: !modal">
-                <div>
-                    <span class="material-symbols-outlined" style="font-size: 200%;" h-model h-on="click: viewNowPlaying(false)">expand_more</span>
-                </div>
-                <div style="margin: var(--container-padding); display: flex; flex-direction: column; gap: var(--container-padding); flex-grow: 1; justify-content: center;">
-                    <div style="width: 100%; display: flex; justify-content: center;">
-                        <div style="display: flex; flex-direction: column; gap: var(--container-padding);">
-                            <img class="album-cover" h-model="model.playback.song" h-attribute="src: albumCover"/>
-                            <div style="font-size: large; display: flex; flex-direction: column;">
-                                <div class="song-name" h-model="model.playback.song" h-property="innerHTML: name">Home Soon</div>
-                                <div class="song-artists" h-model="model.playback.song" h-property="innerHTML: artists">Issues</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div style="width: 100%; display: flex; flex-direction: column; justify-items: center;">
-                        <div style="display: flex; justify-content: center;">
-                        </div>
-                    </div>
-                    <div style="width: 100%; display: flex; justify-content: center;">
-                        <div style="width: 100%; display: flex; flex-direction: column; gap: var(--container-padding);">
-                            <div style="display: flex; justify-content: center;">
-                                <div h-model="model.playback.song" h-component="template: 'RateSongTemplate'" h-duplicate="5"></div>
-                            </div>
-                            <div style="display: flex; width: 100%; justify-content: space-evenly;">
-                                <span class="playback-button material-symbols-outlined" h-model="model.playback"
-                                    h-on="click: previousSong()">skip_previous
-                                </span>
-                                <span class="playback-button material-symbols-outlined" h-model="model.playback"
-                                    h-property="innerText: playing ? 'pause_circle' : 'play_circle'"
-                                    h-on="click: togglePlay()">
-                                </span>
-                                <span class="playback-button material-symbols-outlined" h-model="model.playback"
-                                    h-on="click: nextSong()">skip_next
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-    <footer>
-        <div class="currently-playing" h-model="model.playback" h-class="hidden: song == null" h-on="click: viewNowPlaying(true)">
-            <div class="container-list song-list" h-model="model.playback.song" h-component="template: 'SongListTemplate'"></div>  
-        </div>
-
-        <template h-template="NavbarTabTemplate">
-            <a class="nav-item nav-link nav-item" h-model="^" h-attribute="href: link"  h-route h-routing="start" h-event="*: $element.classList.toggle('nav-link-active', window.location.hash.startsWith(link))" >
-                <span class="material-symbols-outlined" h-model="^" h-property="innerText: icon">icon</span>
-                <span class="nav-title" h-model="^" h-property="innerText: name">Name</span>
-            </a>
-        </template>
-        <nav class="nav" h-model="model.tabs" h-component="template: 'NavbarTabTemplate'">
-        </nav>
-    </footer>
-
-    <script src="app.js">
-
-    </script>
-
+        
+        <app-playback></app-playback>
+        <app-footer></app-footer>
     </body>
 </html>

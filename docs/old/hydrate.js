@@ -28,13 +28,11 @@ class HydrateModelOptions {
     baseProperty;
     parentProperty;
     nameProperty;
-    pathProperty;
     stateProperty;
     constructor() {
         this.baseProperty = "__base";
         this.parentProperty = "__parent";
         this.nameProperty = "__name";
-        this.pathProperty = "__path";
         this.stateProperty = "__state";
     }
 }
@@ -56,7 +54,6 @@ class HydrateAttributeNamesOptions {
     //Linking
     model;
     nested; //Will also respond to nested property changes
-    init; //Will initialize the model if it isn't
     //Basic element manipulation
     property;
     attribute;
@@ -66,11 +63,9 @@ class HydrateAttributeNamesOptions {
     //Binding
     input;
     mutation;
-    lazy;
-    mock; //Used for mocking which attributes are linked to which model
     //Conditionals
     //static = "static"; //Executes once
-    if; //if the element should respond
+    //condition = "condition";
     //Functions and execution
     event; //Calls a callback any time the framework event type is triggered
     on; //Fires a callback when the "on" event of the element is fired
@@ -78,7 +73,6 @@ class HydrateAttributeNamesOptions {
     script;
     template; //template changes queries user of the templates then regenerate
     component; //="[PROP] [TEMPLATE] [property | model | array | dictionary | map]?
-    source; //tells component the source url for a resource
     duplicate; //Duplicates the component x times 
     id; //Places an id
     //Routing
@@ -93,7 +87,6 @@ class HydrateAttributeNamesOptions {
         //Linking
         this.model = "model";
         this.nested = "nested"; //Will also respond to nested property changes
-        this.init = "init";
         //Basic element manipulation
         this.property = "property";
         this.attribute = "attribute";
@@ -103,10 +96,6 @@ class HydrateAttributeNamesOptions {
         //Binding
         this.input = "input";
         this.mutation = "mutation";
-        this.lazy = "lazy";
-        this.mock = "mock";
-        //Conditionals
-        this.if = "if";
         //Functions and execution
         this.event = "event"; //Calls a callback any time the framework event type is triggered
         this.on = "on"; //Fires a callback when the "on" event of the element is fired
@@ -114,7 +103,6 @@ class HydrateAttributeNamesOptions {
         this.script = "script";
         this.template = "template"; //template changes queries user of the templates then regenerate
         this.component = "component"; //="[PROP] [TEMPLATE] [property | model | array | dictionary | map]?
-        this.source = "source";
         this.duplicate = "duplicate"; //Duplicates the component x times 
         this.id = "id"; //Places an id
         //Routing
@@ -129,7 +117,7 @@ class HydrateAttributeNamesOptions {
 }
 class HydrateElementTrackingEvent extends CustomEvent {
     constructor(detail) {
-        super(detail.hydrate.event(detail.type), {
+        super(`hydrate.${detail.type}`, {
             detail: detail,
             bubbles: true,
             cancelable: true
@@ -138,7 +126,7 @@ class HydrateElementTrackingEvent extends CustomEvent {
 }
 class HydrateModelEvent extends CustomEvent {
     constructor(detail) {
-        super(detail.hydrate.event(detail.type), {
+        super(`hydrate.${detail.type}`, {
             detail: detail,
             bubbles: true,
             cancelable: true
@@ -147,7 +135,7 @@ class HydrateModelEvent extends CustomEvent {
 }
 class HydrateRouteEvent extends CustomEvent {
     constructor(detail) {
-        super(detail.hydrate.event(detail.type), {
+        super(`hydrate.${detail.type}`, {
             detail: detail,
             bubbles: true,
             cancelable: true
@@ -156,7 +144,7 @@ class HydrateRouteEvent extends CustomEvent {
 }
 class HydrateElementMutationEvent extends CustomEvent {
     constructor(detail) {
-        super(detail.hydrate.event(detail.type), {
+        super(`hydrate.${detail.type}`, {
             detail: detail,
             bubbles: true,
             cancelable: true
@@ -165,7 +153,7 @@ class HydrateElementMutationEvent extends CustomEvent {
 }
 class HydrateElementEventListenerEvent extends CustomEvent {
     constructor(detail) {
-        super(detail.hydrate.event(detail.type), {
+        super(`hydrate.${detail.type}`, {
             detail: detail,
             bubbles: true,
             cancelable: true
@@ -174,7 +162,7 @@ class HydrateElementEventListenerEvent extends CustomEvent {
 }
 class HydrateElementInputEvent extends CustomEvent {
     constructor(detail) {
-        super(detail.hydrate.event(detail.type), {
+        super(`hydrate.${detail.type}`, {
             detail: detail,
             bubbles: true,
             cancelable: true
@@ -273,8 +261,7 @@ class HydrateRouteRequest {
     #resolved;
     #rejected;
     #redirectRequest;
-    #routingState;
-    constructor(hydrate, url, state, finished, routingState) {
+    constructor(hydrate, url, state, finished) {
         this.hydrate = hydrate;
         this.path = this.#determineRoutePath(url);
         this.pathname = url.pathname;
@@ -287,7 +274,6 @@ class HydrateRouteRequest {
         this.#resolved = false;
         this.#rejected = false;
         this.#redirectRequest = null;
-        this.#routingState = routingState;
     }
     #determineRoutePath(url) {
         return !this.hydrate.options.router.hashRouting ? url.pathname
@@ -367,21 +353,15 @@ class HydrateRouteRequest {
         this.#resolved = true;
         this.#rejected = false;
         this.#redirectRequest = null;
-        if (this.#finished()) {
-            this.#routingState.url = this.url;
-            this.#routingState.eventType = "routing.resolve";
+        if (this.#finished())
             this.hydrate.dispatch(this.hydrate.root, "routing.resolve", undefined, this);
-        }
     }
     reject() {
         this.#resolved = false;
         this.#rejected = true;
         this.#redirectRequest = null;
-        if (this.#finished()) {
-            this.#routingState.url = this.url;
-            this.#routingState.eventType = "routing.reject";
+        if (this.#finished())
             this.hydrate.dispatch(this.hydrate.root, "routing.reject", undefined, this);
-        }
     }
     redirect(url, state) {
         this.#resolved = false;
@@ -390,37 +370,8 @@ class HydrateRouteRequest {
             url: url ?? this.#redirectRequest?.url,
             state: state ?? this.#redirectRequest?.state
         };
-        if (this.#finished()) {
-            this.#routingState.url = this.url;
-            this.#routingState.eventType = "routing.start";
+        if (this.#finished())
             this.hydrate.route(this.#redirectRequest.url, this.#redirectRequest.state);
-        }
-    }
-}
-class HydrateModelSubscription {
-    #hydrate;
-    modelPath;
-    callback;
-    constructor(hydrate, modelPath, callback) {
-        this.#hydrate = hydrate;
-        this.modelPath = modelPath;
-        this.callback = callback;
-    }
-    subscribe() {
-        //@ts-ignore
-        this.#hydrate.root.addEventListener(this.#hydrate.event("bind"), this.callback);
-        //@ts-ignore
-        this.#hydrate.root.addEventListener(this.#hydrate.event("set"), this.callback);
-        //@ts-ignore
-        this.#hydrate.root.addEventListener(this.#hydrate.event("unbind"), this.callback);
-    }
-    unsubscribe() {
-        //@ts-ignore
-        this.#hydrate.root.removeEventListener(this.#hydrate.event("bind"), this.callback);
-        //@ts-ignore
-        this.#hydrate.root.removeEventListener(this.#hydrate.event("set"), this.callback);
-        //@ts-ignore
-        this.#hydrate.root.removeEventListener(this.#hydrate.event("unbind"), this.callback);
     }
 }
 class HydrateApp {
@@ -431,12 +382,7 @@ class HydrateApp {
     #elementHandlerDelays;
     #root;
     #models;
-    #mutationObserver;
-    #intersectionObserver;
-    #componentTypes;
-    #components;
-    #routingState;
-    #lazyElements;
+    #observer;
     constructor(options) {
         this.#options = { ...new HydrateAppOptions(), ...options };
         this.#htmlExcecuters = new Map();
@@ -444,33 +390,10 @@ class HydrateApp {
         this.#elementHandlerDelays = new Map();
         this.#root = document.querySelector(this.#options.dom.rootSelector);
         this.#models = {};
-        this.#componentTypes = new Map();
-        this.#components = new Map();
         this.#addTrackableAttributes();
         this.#addStandardAttributeHandlers();
-        this.#routingState = {
-            url: null,
-            eventType: null
-        };
-        this.#mutationObserver = this.#observeDom(this.#root);
-        this.root.addEventListener("input", this.#inputListener.bind(this));
-        window.addEventListener("popstate", this.#popStateListener.bind(this));
-        this.#intersectionObserver = new IntersectionObserver(this.#intersectionCallback.bind(this));
-        this.#lazyElements = new Set();
-        this.#loadTemplates();
-        this.#trackLazyElements();
-        this.#trackElements();
-        //this.#linkComponents();
-    }
-    get root() {
-        return this.#root;
-    }
-    get options() {
-        return this.#options;
-    }
-    #observeDom(node) {
-        const observer = new MutationObserver(this.#mutationCallback.bind(this));
-        observer.observe(node, {
+        this.#observer = new MutationObserver(this.#mutationCallback.bind(this));
+        this.#observer.observe(this.root, {
             subtree: true,
             childList: true,
             attributes: true,
@@ -479,8 +402,19 @@ class HydrateApp {
             characterDataOldValue: true,
             //attributeFilter: [...this.#options.attribute.trackables],
         });
-        return observer;
+        this.root.addEventListener("input", this.#inputListener.bind(this));
+        window.addEventListener("popstate", this.#popStateListener.bind(this));
+        this.#trackElements();
     }
+    get root() {
+        return this.#root;
+    }
+    get options() {
+        return this.#options;
+    }
+    // get exectuers() {
+    //     return this.#htmlExcecuters;
+    // }
     route(url, state) {
         if (url == null) {
             url = window.location.href;
@@ -498,9 +432,7 @@ class HydrateApp {
         let isFinished = function () {
             return finished;
         };
-        let request = new HydrateRouteRequest(this, url, state, isFinished, this.#routingState);
-        this.#routingState.url = request.url;
-        this.#routingState.eventType = "routing.start";
+        let request = new HydrateRouteRequest(this, url, state, isFinished);
         let preventedDefault = this.dispatch(this.#root, "routing.start", undefined, request);
         finished = true;
         if (preventedDefault)
@@ -523,12 +455,11 @@ class HydrateApp {
     attribute(name) {
         let key = this.#options.attribute.names[name];
         if (key === undefined || name === "customs") {
+            // if(!this.#options.attribute.names.customs.includes(name))
+            //     return undefined;
             return `${this.#options.attribute.customPrefix}-${name}`;
         }
         return `${this.#options.attribute.standardPrefix}-${key}`;
-    }
-    event(type) {
-        return `hydrate.${type}`;
     }
     resolveObjectValue(startValue, propPath) {
         let nameParts = propPath.split(".");
@@ -576,13 +507,6 @@ class HydrateApp {
             return undefined;
         return model[this.options.model.nameProperty];
     }
-    path(model) {
-        if (typeof model === "string")
-            model = this.model(model);
-        if (model == undefined || !(model instanceof Object))
-            return undefined;
-        return model[this.options.model.pathProperty];
-    }
     /** Bind a new model to the framework */
     bind(name, state) {
         if (name == null || name === "")
@@ -619,47 +543,16 @@ class HydrateApp {
         delete this.#models[baseName];
         //return await promise;
     }
-    subscribe(modelPath, callback) {
-        if (typeof modelPath !== "string")
-            modelPath = this.name(modelPath);
-        const subscription = new HydrateModelSubscription(this, modelPath, this.#subscriptionCallback(modelPath, callback));
-        subscription.subscribe();
-        return subscription;
-    }
-    ;
-    #subscriptionCallback(modelPath, callback) {
-        return (event) => {
-            if (event.target !== this.#root)
-                return;
-            const detail = event.detail;
-            const changePath = detail.propPath ?? detail.modelPath;
-            //We know that this change was for this property or at least a parent property
-            if (changePath === modelPath || modelPath.startsWith(changePath)) {
-                const state = this.state(modelPath);
-                if (state === undefined && modelPath.startsWith(changePath)
-                    && (detail.type === 'bind' || detail.type === "set"))
-                    //If the parent model changed and didn't bind/set us, then no change occured
-                    //Or if parent model changed and we don't exist, then we'll get a changed event
-                    return;
-                callback({
-                    eventType: event.detail.type,
-                    value: state
-                });
-            }
-        };
-    }
-    #makeProxy(data, path, parent) {
-        const nameIndex = path.lastIndexOf(".");
-        const name = nameIndex < 0 ? path : path.substring(nameIndex + 1);
+    #makeProxy(data, name, parent) {
         const app = this;
-        const baseName = parent == null ? path : parent.split(".")[0];
+        const baseName = parent == null ? name : parent.split(".")[0];
         let models = {};
         let proxy;
         let bindOrGet = function (obj, prop, parentName) {
             if (obj[prop] instanceof Date || !(obj[prop] instanceof Object))
                 return null;
             let propName = (typeof prop === 'symbol') ? prop.toString() : prop;
-            let modelName = path + "." + propName;
+            let modelName = name + "." + propName;
             let model = models[prop];
             if (model !== undefined)
                 return model;
@@ -675,8 +568,6 @@ class HydrateApp {
                     return obj;
                 if (prop === app.#options.model.nameProperty)
                     return name;
-                if (prop === app.#options.model.pathProperty)
-                    return path;
                 if (prop === app.#options.model.parentProperty)
                     return app.model(parent);
                 if (prop === app.#options.model.baseProperty)
@@ -688,7 +579,7 @@ class HydrateApp {
                         return function () { return JSON.stringify(this); };
                 }
                 if (obj[prop] instanceof Object && obj[prop] != null) {
-                    let model = bindOrGet(obj, prop, path);
+                    let model = bindOrGet(obj, prop, name);
                     //let model = null;
                     return model ? model : obj[prop];
                 }
@@ -696,24 +587,20 @@ class HydrateApp {
                     return obj[prop];
             },
             set: function (obj, prop, value) {
-                const oldValue = obj[prop];
                 obj[prop] = value;
                 models = {};
                 //Don't allow DOM update to trigger if value is up-to-date or this model is no longer bound
-                if (app.model(path) !== proxy) {
+                if (app.model(name) !== proxy) {
                     return true;
                 }
                 // if(!obj.propertyIsEnumerable(prop))
                 //     return;
                 let propName = (typeof prop === 'symbol') ? prop.toString() : prop;
                 //app.dispatch("set", proxy, propName, previousValue, app.root, "all");
-                if (oldValue != null && typeof oldValue === "object") {
-                    const newIsObject = value != null && typeof value === "object";
-                    for (let key of Object.keys(oldValue))
-                        if (!newIsObject || !value.hasOwnProperty(key))
-                            app.dispatch(app.#root, "unbind", path + "." + propName + "." + key, undefined);
-                }
-                app.dispatch(app.#root, "set", path + "." + propName, undefined);
+                app.dispatch(app.#root, "set", name + "." + propName, undefined);
+                //TODO IMMEDIATELY WORKING ON
+                //Change previous state to only store previous prop state
+                //Only way to gaurentee a true "copy" and really the only useful part
                 return true;
             },
             deleteProperty: function (obj, prop) {
@@ -723,7 +610,7 @@ class HydrateApp {
                         delete models[prop];
                     let propName = (typeof prop === 'symbol') ? prop.toString() : prop;
                     //app.dispatch("unbind", proxy, propName, property, app.root, "all");
-                    app.dispatch(app.#root, "unbind", path + "." + propName, undefined);
+                    app.dispatch(app.#root, "unbind", name + "." + propName, undefined);
                 }
                 return true;
             }
@@ -790,48 +677,33 @@ class HydrateApp {
         return map;
     }
     #mutationCallback(mutations, observer) {
+        let updatedElements = [];
         this.#trackableElementSelector;
         const trackableSelector = this.#trackableElementSelector;
-        const lazyElementSelector = this.#lazyLoadElementSelector;
-        const componentsSelector = this.#availabeComponentSelector;
+        let trackableElements = new Set();
+        let untrackableElements = new Set();
         let modelAttribute = this.attribute(this.#options.attribute.names.model);
-        const componentTemplateSelector = this.#componentTemplateSelector;
-        const templateAttribute = this.attribute(this.#options.attribute.names.template);
-        const sourceAttribute = this.attribute(this.#options.attribute.names.source);
         mutations.forEach(mutation => {
-            if (!mutation.target.isConnected)
+            if (!(mutation.target instanceof HTMLElement))
                 return;
             const target = mutation.target;
             switch (mutation.type) {
                 case "attributes":
                     {
-                        if (!(mutation.target instanceof HTMLElement))
-                            return;
                         if (mutation.target.getAttribute(mutation.attributeName) === mutation.oldValue)
                             return;
                         if (this.#options.attribute.trackables.indexOf(mutation.attributeName) >= 0) {
-                            let element = mutation.target;
-                            if (element.matches(lazyElementSelector))
-                                this.#trackLazyElement(element);
-                            else
-                                this.#untrackLazyElement(element);
-                            if (element.matches(componentsSelector))
-                                this.#linkComponent(element);
-                            if ((mutation.attributeName === templateAttribute || mutation.attributeName === sourceAttribute)
-                                && element.matches(componentTemplateSelector))
-                                this.#loadTemplate(element, true);
                             if (mutation.target.matches(trackableSelector)) {
+                                let element = mutation.target;
                                 let newTrack = this.#trackElement(element);
-                                if (newTrack === false) {
+                                if (!newTrack) {
                                     //Wasn't a new track, but a core value changed, so rebind the element
                                     let modelName = element.getAttribute(modelAttribute);
                                     this.dispatch(element, "bind", modelName, undefined);
                                 }
                             }
-                            else {
-                                this.#untrackElement(mutation.target);
-                                this.#unlinkComponent(mutation.target);
-                            }
+                            else
+                                untrackableElements.add(mutation.target);
                         }
                         this.dispatch(mutation.target, "mutation.parent.attribute", undefined, mutation);
                         this.dispatch(mutation.target, "mutation.target.attribute", undefined, mutation);
@@ -842,58 +714,30 @@ class HydrateApp {
                     {
                         let addedElement = false;
                         mutation.addedNodes.forEach(node => {
-                            if (!node.isConnected)
-                                return;
-                            if (!(node instanceof HTMLElement) || node.parentNode == null)
+                            if (!(node instanceof HTMLElement))
                                 return;
                             addedElement = true;
-                            if (node.matches(componentsSelector)) {
-                                this.#trackLazyElement(node);
-                                this.#linkComponent(node);
-                            }
                             this.#trackElement(node);
                             let elements = node.querySelectorAll(trackableSelector);
-                            if (node.matches(componentTemplateSelector))
-                                this.#loadTemplate(node, true);
-                            for (let element of node.querySelectorAll(componentTemplateSelector))
-                                this.#loadTemplate(element, true);
-                            for (let element of node.querySelectorAll(lazyElementSelector))
-                                this.#trackLazyElement(element);
-                            for (let element of node.querySelectorAll(componentsSelector)) {
-                                this.#trackLazyElement(element);
-                                this.#linkComponent(element);
-                            }
-                            for (let element of elements) {
+                            for (let element of elements)
                                 this.#trackElement(element);
-                                if (element.matches(componentTemplateSelector))
-                                    this.#loadTemplate(element, true);
-                            }
                         });
-                        if (addedElement && mutation.target instanceof HTMLElement) {
+                        if (addedElement) {
                             this.dispatch(mutation.target, "mutation.parent.added", undefined, mutation);
                             this.dispatch(mutation.target, "mutation.target.added", undefined, mutation);
                             this.dispatch(mutation.target, "mutation.child.added", undefined, mutation);
                         }
                         let removedElement = false;
                         for (let node of mutation.removedNodes) {
-                            if (node.isConnected)
-                                return;
                             if (!(node instanceof HTMLElement))
                                 return;
                             removedElement = true;
-                            this.#untrackLazyElement(node);
                             this.#untrackElement(node);
-                            this.#unlinkComponent(node);
                             let elements = node.querySelectorAll(trackableSelector);
-                            for (let element of node.querySelectorAll(lazyElementSelector))
-                                this.#untrackLazyElement(element);
-                            for (let element of elements) {
-                                this.#untrackLazyElement(element);
+                            for (let element of elements)
                                 this.#untrackElement(element);
-                                this.#unlinkComponent(element);
-                            }
                         }
-                        if (removedElement && mutation.target instanceof HTMLElement) {
+                        if (removedElement) {
                             this.dispatch(mutation.target, "mutation.parent.removed", undefined, mutation);
                             this.dispatch(mutation.target, "mutation.target.removed", undefined, mutation);
                             this.dispatch(mutation.target, "mutation.child.removed", undefined, mutation);
@@ -902,38 +746,21 @@ class HydrateApp {
                     }
                 case "characterData":
                     {
-                        if (mutation.target instanceof HTMLElement) {
-                            this.dispatch(mutation.target, "mutation.parent.characterdata", undefined, mutation);
-                            this.dispatch(mutation.target, "mutation.target.characterdata", undefined, mutation);
-                            this.dispatch(mutation.target, "mutation.child.characterdata", undefined, mutation);
-                        }
+                        this.dispatch(mutation.target, "mutation.parent.characterdata", undefined, mutation);
+                        this.dispatch(mutation.target, "mutation.target.characterdata", undefined, mutation);
+                        this.dispatch(mutation.target, "mutation.child.characterdata", undefined, mutation);
                         break;
                     }
             }
         });
-    }
-    #intersectionCallback(entries) {
-        for (let entry of entries) {
-            if (entry.isIntersecting) {
-                const element = entry.target;
-                this.#intersectionObserver.unobserve(element);
-                element.removeAttribute(this.attribute(this.#options.attribute.names.lazy));
-            }
+        //Update each element
+        for (let element of untrackableElements) {
+            this.#untrackElement(element);
         }
-    }
-    #trackLazyElements() {
-        for (let element of this.#root.querySelectorAll(this.#lazyLoadElementSelector))
-            this.#intersectionObserver.observe(element);
-    }
-    #trackLazyElement(element) {
-        if (element.matches(this.#lazyLoadElementSelector))
-            this.#intersectionObserver.observe(element);
-    }
-    #untrackLazyElement(element) {
-        this.#intersectionObserver.unobserve(element);
-    }
-    get #lazyLoadElementSelector() {
-        return `:not(template)[${this.attribute(this.#options.attribute.names.lazy)}]`;
+        for (let element of trackableElements) {
+            this.#trackElement(element);
+            let modelName = element.getAttribute(modelAttribute);
+        }
     }
     #inputListener(event) {
         let target = event.target;
@@ -945,27 +772,26 @@ class HydrateApp {
         if (!(state instanceof Object))
             return;
         this.dispatch(target, "input", modelName, event);
+        // let modelEvent = this.#createEvent(target, "input", this.#determineEventDetailProperties(modelName, "property"), null, undefined);
+        // let args = this.parseAttributeArguments(target, this.attribute(this.#options.attribute.names.input));
+        // for(let i = 0; i < args.length; i++)
+        // {
+        //     //How do we want to format the input attribute?
+        //     //this.#createEvent(target, "input", this.state())
+        //     let arg = args[i];
+        //     let propName = arg.field;
+        //     let value = this.resolveArgumentValue(modelEvent.detail, arg, event);
+        //     if(state[propName] === value)
+        //         continue;
+        //     model[propName] = value;
+        // }
     }
     #addTrackableAttributes() {
-        this.#options.attribute.trackables.push(this.attribute(this.#options.attribute.names.property), this.attribute(this.#options.attribute.names.model), this.attribute(this.#options.attribute.names.init), this.attribute(this.#options.attribute.names.component), this.attribute(this.#options.attribute.names.attribute), this.attribute(this.#options.attribute.names.property), this.attribute(this.#options.attribute.names.toggle), this.attribute(this.#options.attribute.names.class), this.attribute(this.#options.attribute.names.remove), this.attribute(this.#options.attribute.names.input), this.attribute(this.#options.attribute.names.mutation), this.attribute(this.#options.attribute.names.lazy), this.attribute(this.#options.attribute.names.mock), this.attribute(this.#options.attribute.names.if), this.attribute(this.#options.attribute.names.event), this.attribute(this.#options.attribute.names.on), this.attribute(this.#options.attribute.names.component), this.attribute(this.#options.attribute.names.duplicate), this.attribute(this.#options.attribute.names.route), this.attribute(this.#options.attribute.names.routing), this.attribute(this.#options.attribute.names.mutation), this.attribute(this.#options.attribute.names.source));
+        this.#options.attribute.trackables.push(this.attribute(this.#options.attribute.names.property), this.attribute(this.#options.attribute.names.model), this.attribute(this.#options.attribute.names.attribute), this.attribute(this.#options.attribute.names.property), this.attribute(this.#options.attribute.names.toggle), this.attribute(this.#options.attribute.names.class), this.attribute(this.#options.attribute.names.remove), this.attribute(this.#options.attribute.names.event), this.attribute(this.#options.attribute.names.on), this.attribute(this.#options.attribute.names.component), this.attribute(this.#options.attribute.names.route), this.attribute(this.#options.attribute.names.mutation));
         let app = this;
         //this.#options.attribute.trackables.push(...this.#options.attribute.names.customs.map(x => app.attribute(x)));
     }
     #addStandardAttributeHandlers() {
-        this.#options.attribute.handlers.set(this.attribute(this.#options.attribute.names.init), (arg, eventDetails) => {
-            if (eventDetails.modelName !== "" && eventDetails.model != null)
-                return;
-            let model = eventDetails.base;
-            if (model == null)
-                model = this.bind(eventDetails.baseName, {});
-            const nameParts = eventDetails.modelPath.split(".");
-            for (let i = 1; i < nameParts.length; i++) {
-                const name = nameParts[i];
-                if (model[name] == null)
-                    model[name] = {};
-                model = model[name];
-            }
-        });
         this.#options.attribute.handlers.set(this.attribute(this.#options.attribute.names.property), (arg, eventDetails) => {
             if (eventDetails.modelName !== "" && eventDetails.model == null)
                 return;
@@ -1007,6 +833,8 @@ class HydrateApp {
             eventDetails.element.remove();
         });
         this.#options.attribute.handlers.set(this.attribute(this.#options.attribute.names.event), (arg, eventDetails) => {
+            // if(eventDetails.modelName !== "" && eventDetails.model == null)
+            //     return;
             if (arg.field !== "*" && arg.field !== eventDetails.type)
                 return;
             if (this.#isRoutingEvent(eventDetails.type)) {
@@ -1033,12 +861,10 @@ class HydrateApp {
         this.#options.attribute.handlers.set(this.attribute(this.#options.attribute.names.component), (arg, eventDetails) => {
             if (eventDetails.modelName !== "" && eventDetails.model == null)
                 return;
-            const component = this.#components.get(eventDetails.element);
-            //If we are not linked to a component, the event isn't targeting the model (and not targeting a property) unless it's the array.length property
-            if (component == null
-                || (eventDetails.propName !== undefined && !Array.isArray(eventDetails.state) && eventDetails.propName !== "length"))
-                return;
             let hasRoutintAttribute = eventDetails.element.hasAttribute(this.attribute(this.#options.attribute.names.routing));
+            //Only allow non-route events and non-routing components or the opposite
+            if (this.#isRoutingEvent(eventDetails.type) !== hasRoutintAttribute)
+                return;
             if (hasRoutintAttribute) {
                 var routeRequest = eventDetails?.request;
                 switch (this.#elementIsHandledByRoute(eventDetails.element, eventDetails.type, routeRequest)) {
@@ -1046,11 +872,6 @@ class HydrateApp {
                         let element = eventDetails.element;
                         while (element.firstChild)
                             element.removeChild(element.firstChild);
-                        if (element.shadowRoot) {
-                            let shadow = element.shadowRoot;
-                            while (shadow.firstChild)
-                                shadow.removeChild(shadow.firstChild);
-                        }
                         return;
                     }
                     case "unchanged":
@@ -1059,42 +880,37 @@ class HydrateApp {
                         break;
                 }
             }
-            else if (this.#isRoutingEvent(eventDetails.type))
+            //Only generate the component if the model changed, not the child properties
+            let modelAttribute = this.attribute(this.#options.attribute.names.model);
+            if (eventDetails.element.getAttribute(modelAttribute) !== eventDetails.modelPath)
                 return;
-            this.#buildComponent(component, eventDetails);
-        });
-        this.#options.attribute.handlers.set(this.attribute(this.#options.attribute.names.mock), (arg, eventDetails) => {
-            if (eventDetails.modelName !== "" && eventDetails.model == null)
-                return;
-            const modelPath = eventDetails.modelPath;
-            const element = eventDetails.element;
-            const args = this.parseAttributeArguments(element, this.attribute(this.#options.attribute.names.mock));
-            const mockedAttributes = new Map();
-            for (let attribute of args)
-                mockedAttributes.set(attribute.field, this.resolveArgumentValue(eventDetails, attribute, null));
-            //The mocking attribute means we need to reset all of our handlers
-            //So clear out all the old executers
-            //Manually add back this handler so we can update things the next time changes happen
-            //Manually add all the other handlers
-            this.#clearElementExecuters(element);
-            this.#addElementExecuters(element, modelPath, mockedAttributes);
-            const executers = this.#getExcecuters(eventDetails.type, [element])?.get(element);
-            if (executers) {
-                for (let path of executers.keys())
-                    this.dispatch(eventDetails.element, eventDetails.type, path, null);
+            let element = eventDetails.element;
+            let templateAttribute = this.attribute(this.#options.attribute.names.template);
+            let templateName = eventDetails.hydrate.resolveArgumentValue(eventDetails, arg, null);
+            //Check template type
+            switch (arg.field) {
+                case "url":
+                    {
+                        fetch(templateName)
+                            .then(res => res.text())
+                            .then(html => {
+                            let div = document.createElement("div");
+                            div.innerHTML = html;
+                            this.#buildComponent(div.childNodes, modelAttribute, eventDetails);
+                        });
+                        break;
+                    }
+                case "template":
+                default:
+                    {
+                        let template = this.#root.querySelector(`template[${templateAttribute}=${templateName}]`);
+                        if (template == null)
+                            return;
+                        this.#buildComponent(template.content.childNodes, modelAttribute, eventDetails);
+                        return;
+                    }
             }
-            this.#addMockAttributeHandler(element, modelPath);
-            return;
         });
-    }
-    #determineMockedAttributes(element, modelPath) {
-        //Reads the mocked attribute and determines the actual model paths the following attributes should respond to
-        const args = this.parseAttributeArguments(element, this.attribute(this.#options.attribute.names.mock));
-        const mockedAttributes = new Map();
-        let mockEvent = this.#createEvent(element, "bind", this.#determineEventDetailProperties(modelPath, "model"), null, null);
-        for (let arg of args)
-            mockedAttributes.set(arg.field, this.resolveArgumentValue(mockEvent.detail, arg, null));
-        return mockedAttributes;
     }
     #isRoutingEvent(eventType) {
         switch (eventType) {
@@ -1107,6 +923,8 @@ class HydrateApp {
         }
     }
     #elementIsHandledByRoute(element, eventType, routeRequest) {
+        if (!this.#isRoutingEvent(eventType))
+            return "unchanged";
         let routeAttribute = this.attribute(this.#options.attribute.names.route);
         let routingAttribute = this.attribute(this.#options.attribute.names.routing);
         let routing = element.getAttribute(routingAttribute);
@@ -1120,20 +938,9 @@ class HydrateApp {
         if (route == null) {
             return "unhandled";
         }
-        let routeUrl = null;
-        if (this.#isRoutingEvent(eventType))
-            routeUrl = routeRequest.url;
-        {
-            eventType = this.#routingState.eventType;
-            routeUrl = this.#routingState.url;
-            if (routeUrl == null) {
-                return "unchanged";
-            }
-            routeRequest = new HydrateRouteRequest(this, new URL(routeUrl), {}, () => true, this.#routingState);
-        }
         let routingType = eventType.substring(eventType.lastIndexOf(".") + 1);
         let selector = `[${routingAttribute}~=${routingType}]`;
-        if (routeRequest.match(routeUrl, { path: route }) == null)
+        if (routeRequest.match(routeRequest.url, { path: route }) == null)
             return "unhandled";
         if (routerElement === element && routing == null)
             return "unchanged";
@@ -1146,222 +953,8 @@ class HydrateApp {
         }
         return "unchanged";
     }
-    #loadTemplates() {
-        const templateAttribute = this.attribute(this.#options.attribute.names.template);
-        const templateSelector = this.#componentTemplateSelector;
-        for (let template of this.root.querySelectorAll(templateSelector))
-            this.#loadTemplate(template, true);
-    }
-    #loadTemplate(element, lazyLoad) {
-        try {
-            const lazyAttribute = this.attribute(this.#options.attribute.names.lazy);
-            if (!element.matches(this.#componentTemplateSelector))
-                return null;
-            let lazy = lazyLoad && element.hasAttribute(lazyAttribute);
-            if (!lazy) {
-                const sourceAttribute = this.attribute(this.#options.attribute.names.source);
-                const url = element.getAttribute(sourceAttribute);
-                if (url != null) {
-                    this.#loadRemoteTemplate(element, url);
-                    return;
-                }
-            }
-            const typeName = element.getAttribute(this.attribute(this.#options.attribute.names.template))?.toLowerCase();
-            if (!typeName)
-                return;
-            if (this.#componentTypes.has(typeName)) {
-                console.error(`A template with the name ${typeName} has already been declared`);
-                return;
-            }
-            const templateAttribute = this.attribute(this.#options.attribute.names.template);
-            const componentAttribute = this.attribute(this.#options.attribute.names.component);
-            const scriptAttribute = this.attribute(this.#options.attribute.names.script);
-            const componentBodySelector = `script[${scriptAttribute}]`;
-            const modelAttribute = this.attribute(this.#options.attribute.names.model);
-            const components = this.#root.querySelectorAll(`${typeName}:not([${lazyAttribute}]),[${componentAttribute}=${typeName}]:not([${lazyAttribute}])`);
-            if (lazy && components.length === 0)
-                //If we are lazy loading and don't have any non-lazy components to load, then don't load this template
-                return;
-            const type = {
-                shadowElement: false,
-                attributes: new Map(),
-                template: [],
-                //@ts-ignore
-                classDefinition: function () {
-                    return {};
-                }
-            };
-            this.#componentTypes.set(typeName, type);
-            //Load attributes
-            for (let attribute of element.attributes)
-                if (attribute.name !== templateAttribute && attribute.name !== lazyAttribute)
-                    type.attributes.set(attribute.name, attribute.value);
-            type.attributes.set(this.attribute(this.#options.attribute.names.component), typeName);
-            //Remove the lazy attribute to not copy over to component
-            type.attributes.delete(this.attribute(this.#options.attribute.names.lazy));
-            //Set to modeless component by default if no model was specified
-            if (!type.attributes.has(modelAttribute))
-                type.attributes.set(modelAttribute, "");
-            //Load template nodes
-            for (let node of element.content.childNodes) {
-                if (node instanceof HTMLStyleElement) {
-                    //Need a shadow dom to have inidividual styles
-                    type.shadowDom = true;
-                }
-                if (node instanceof HTMLScriptElement) {
-                    //Load the class body
-                    type.classDefinition = new Function(`'use strict'; return ${node.textContent.trim()}`)();
-                    continue;
-                }
-                type.template.push(node);
-            }
-            //Link all components of this type
-            for (let element of components)
-                this.#linkComponent(element);
-        }
-        catch (error) {
-            console.error(error);
-        }
-    }
-    #loadRemoteTemplate(element, url) {
-        fetch(url)
-            .then(res => res.text())
-            .then(html => {
-            const lazyAttribute = this.attribute(this.#options.attribute.names.lazy);
-            let div = document.createElement("div");
-            div.innerHTML = html;
-            let template = div.querySelector("template");
-            if (!template)
-                return;
-            //Load up the HTML
-            element.content.append(...template.content.childNodes);
-            //Load up the attributes
-            for (let attribute of template.attributes)
-                if (!element.hasAttribute(attribute.name) && attribute.name !== lazyAttribute)
-                    element.setAttribute(attribute.name, attribute.value);
-            //This should guarentee a reload of the component
-            element.removeAttribute(lazyAttribute);
-            element.removeAttribute(this.attribute(this.#options.attribute.names.source));
-        });
-        return;
-    }
-    get lazy() {
-        return this.#lazyElements;
-    }
-    get #availabeComponentSelector() {
-        const templateAttribute = this.attribute(this.#options.attribute.names.template);
-        const componentAttribute = this.attribute(this.#options.attribute.names.component);
-        const templates = this.#root.querySelectorAll(`template[${templateAttribute}]`);
-        const templateNames = new Set();
-        //Load all the names
-        for (let template of templates) {
-            const name = template.getAttribute(templateAttribute);
-            if (!name)
-                continue;
-            templateNames.add(name);
-        }
-        for (let name of this.#componentTypes.keys())
-            templateNames.add(name);
-        if (templateNames.size === 0)
-            return `[${componentAttribute}]`;
-        let elementSelecor = "";
-        for (let selector of templateNames)
-            elementSelecor += `,${selector},[${componentAttribute}=${selector}]`;
-        return elementSelecor.substring(1);
-    }
-    #linkComponent(element) {
-        //Don't load if we're lazy && not trying to load
-        if (element.matches(this.#lazyLoadElementSelector))
-            return;
-        try {
-            const componentAttribute = this.attribute(this.#options.attribute.names.component);
-            const componentTypeName = element.getAttribute(componentAttribute) ?? element.tagName.toLowerCase();
-            let componentType = this.#componentTypes.get(componentTypeName);
-            if (componentType == null) {
-                const templateAttribute = this.attribute(this.#options.attribute.names.template);
-                const templateSelector = `template[${templateAttribute}=${componentTypeName}]`;
-                const template = this.root.querySelector(templateSelector);
-                if (template)
-                    this.#loadTemplate(template, false);
-                return;
-            }
-            let component = this.#components.get(element);
-            if (component?.type == componentType)
-                return;
-            const hydrate = this;
-            component = {
-                initialized: false,
-                element,
-                type: componentType,
-                data: new componentType.classDefinition(),
-                mutationObserver: null
-            };
-            //Add some default behavior to the component class
-            Object.defineProperty(component.data, '$hydrate', {
-                get() {
-                    return hydrate;
-                }
-            });
-            Object.defineProperty(component.data, '$parent', {
-                get() {
-                    return hydrate.#findComponentForElement(component.element.parentElement)?.data;
-                }
-            });
-            Object.defineProperty(component.data, '$root', {
-                get() {
-                    return component.element;
-                }
-            });
-            Object.defineProperty(component.data, '$modelPath', {
-                get() {
-                    return component.element.getAttribute(this.$hydrate.attribute(this.$hydrate.options.attribute.names.model));
-                }
-            });
-            Object.defineProperty(component.data, '$model', {
-                get() {
-                    return this.$hydrate.model(this.$modelPath);
-                }
-            });
-            Object.defineProperty(component.data, '$state', {
-                get() {
-                    return this.$hydrate.state(this.$modelPath);
-                }
-            });
-            if (componentType.shadowDom && !element.shadowRoot) {
-                element.attachShadow({ mode: 'open' });
-                component.mutationObserver = this.#observeDom(element.shadowRoot);
-            }
-            this.#components.set(element, component);
-            //remove from lazy load queue
-            this.#lazyElements.delete(element);
-            //Copy component attributes over from template
-            for (let attribute of componentType.attributes.keys())
-                if (!element.hasAttribute(attribute))
-                    element.setAttribute(attribute, componentType.attributes.get(attribute));
-        }
-        catch (error) {
-            console.error(error);
-        }
-    }
-    #unlinkComponent(element) {
-        let component = this.#components.get(element);
-        if (component == null)
-            return;
-        //Call component unitializer callback if available
-        if (component.data.onDestroy instanceof Function)
-            component.data.onDestroy();
-        this.#components.delete(element);
-        if (component.mutationObserver)
-            this.#mutationObserver.disconnect();
-    }
-    #buildComponent(component, eventDetails) {
-        //Call component initializer callback if available
-        if (component.data.onInit instanceof Function && component.initialized === false) {
-            component.data.onInit(eventDetails);
-            component.initialized = true;
-        }
+    #buildComponent(template, modelAttribute, eventDetails) {
         let element = eventDetails.element;
-        const modelAttribute = this.attribute(this.#options.attribute.names.model);
         let modelSelector = `[${modelAttribute}^=\\^]`;
         const insertModelPath = function (element, path) {
             element.setAttribute(modelAttribute, element.getAttribute(modelAttribute).replace("^", path));
@@ -1388,7 +981,7 @@ class HydrateApp {
                 modelPaths.push(eventDetails.modelPath);
         }
         for (let modelPath of modelPaths) {
-            for (var child of component.type.template) {
+            for (var child of template) {
                 let node = child.cloneNode(true);
                 children.push(node);
                 if (!(node instanceof HTMLElement))
@@ -1404,20 +997,11 @@ class HydrateApp {
                     insertId(element);
             }
         }
-        const content = component.type.shadowDom ? element.shadowRoot : element;
-        //delete the current content and shadow dom
+        //delete the current content
         while (element.firstChild)
             element.removeChild(element.firstChild);
-        if (element.shadowRoot) {
-            let shadow = element.shadowRoot;
-            while (shadow.firstChild)
-                shadow.removeChild(shadow.firstChild);
-        }
         for (let node of children)
-            content.appendChild(node);
-        //Call component change callback if available
-        if (component.data.onRender instanceof Function)
-            component.data.onRender(eventDetails);
+            eventDetails.element.appendChild(node);
     }
     resolveArgumentValue(detail, arg, event) {
         let app = this;
@@ -1447,8 +1031,7 @@ class HydrateApp {
                     ? query : app.#root.querySelector(query);
                 const idAttribute = app.attribute(app.#options.attribute.names.id);
                 return element.getAttribute(idAttribute);
-            },
-            $component: app.#findComponentForElement(detail.element)?.data
+            }
         };
         const validIndentifier = /^[$A-Z_][0-9A-Z_$]*$/i;
         var stateKeys = Object.keys(detail.state ?? {}).filter(x => x.match(validIndentifier));
@@ -1461,19 +1044,6 @@ class HydrateApp {
         if (typeof detail.state === "object")
             func = func.bind(detail.state);
         return func(...values);
-    }
-    #findComponentForElement(element) {
-        while (element != null) {
-            let component = this.#components.get(element);
-            if (component != null)
-                return component;
-            if (element instanceof ShadowRoot) {
-                element = element.host;
-                continue;
-            }
-            element = element.parentNode;
-        }
-        return null;
     }
     parseAttributeArguments(element, name) {
         if (!element.hasAttribute(name))
@@ -1566,9 +1136,6 @@ class HydrateApp {
             this.#trackElement(element);
     }
     #trackElement(element) {
-        //Don't load if we're lazy && not trying to load
-        if (element.matches(this.#lazyLoadElementSelector))
-            return;
         let selector = this.#trackableElementSelector;
         if (!element.matches(selector)) {
             this.#untrackElement(element);
@@ -1576,7 +1143,7 @@ class HydrateApp {
         }
         this.#removeOnAttributeEventListeners(element);
         this.#updateDelayedAttributes(element);
-        let newTrack = this.#updateElementExecuters(element);
+        let newTrack = this.#updateExecuters(element);
         if (newTrack) {
             //Send a track event
             let modelName = element.getAttribute(this.attribute(this.#options.attribute.names.model)) ?? undefined;
@@ -1633,29 +1200,19 @@ class HydrateApp {
         elementListeners.set(eventType, listener);
         element.addEventListener(eventType, listener);
     }
-    #updateElementExecuters(element) {
-        let created = this.#clearElementExecuters(element);
-        const modelAttribute = this.attribute(this.#options.attribute.names.model);
-        const modelPath = element.getAttribute(modelAttribute);
-        //Only add the normal executers if we aren't mocking, otherwise let the mock attribute handle it
-        if (!this.#addMockAttributeHandler(element, modelPath))
-            this.#addElementExecuters(element, modelPath, new Map());
-        return created;
-    }
-    #clearElementExecuters(element) {
+    #updateExecuters(element) {
+        let created = false;
         let elementExecuters = this.#htmlExcecuters.get(element);
         if (elementExecuters === undefined) {
             elementExecuters = new Map();
             this.#htmlExcecuters.set(element, elementExecuters);
-            return true;
+            created = true;
         }
         else {
-            this.#removeOnAttributeEventListeners(element);
             elementExecuters.clear();
         }
-        return false;
-    }
-    #addElementExecuters(element, modelPath, mockedAttributes) {
+        let modelAttribute = this.attribute(this.#options.attribute.names.model);
+        let modelPath = element.getAttribute(modelAttribute);
         let mutationEvents = this.#parseElementMutationEvents(element);
         let possibleEventTypes = [
             'track',
@@ -1673,27 +1230,113 @@ class HydrateApp {
             if (mutationEvents.get(key) === true)
                 possibleEventTypes.push(key);
         }
-        this.#addInitHandler(element, modelPath, possibleEventTypes, mockedAttributes);
-        this.#addSetPropertyHandler(element, modelPath, possibleEventTypes, mockedAttributes);
-        this.#addSetAttributeHandler(element, modelPath, possibleEventTypes, mockedAttributes);
-        this.#addToggleClassHandler(element, modelPath, possibleEventTypes, mockedAttributes);
-        this.#addToggleAttributeHandler(element, modelPath, possibleEventTypes, mockedAttributes);
-        this.#addRemoveElementHandler(element, modelPath, possibleEventTypes, mockedAttributes);
-        this.#addInputHandler(element, modelPath, possibleEventTypes, mockedAttributes);
-        this.#addExecuteEventCallbackHandler(element, modelPath, possibleEventTypes, mockedAttributes);
-        this.#addElementEventListenersHandler(element, modelPath, possibleEventTypes, mockedAttributes);
-        this.#addGenerateComponentHandler(element, modelPath, possibleEventTypes, mockedAttributes);
+        this.#addSetPropertyHandler(element, modelPath, possibleEventTypes);
+        this.#addSetAttributeHandler(element, modelPath, possibleEventTypes);
+        this.#addToggleClassHandler(element, modelPath, possibleEventTypes);
+        this.#addToggleAttributeHandler(element, modelPath, possibleEventTypes);
+        this.#addRemoveElementHandler(element, modelPath, possibleEventTypes);
+        this.#addInputHandler(element, modelPath, possibleEventTypes);
+        this.#addExecuteEventCallbackHandler(element, modelPath, possibleEventTypes);
+        this.#addElementEventListenersHandler(element, modelPath, possibleEventTypes);
+        this.#addGenerateComponentHandler(element, modelPath, possibleEventTypes);
+        return created;
     }
-    #addExecuters(element, attribute, modelPath, eventTypes, possibleEventTypes, parseArgs, mockedAttributes) {
+    #addSetPropertyHandler(element, modelPath, possibleEventTypes) {
+        let attribute = this.attribute(this.#options.attribute.names.property);
+        let eventTypes = [
+            'track',
+            'bind',
+            'set',
+            "mutation.target.added",
+            "mutation.target.removed",
+            "mutation.target.attribute",
+            "mutation.target.characterdata",
+            "mutation.parent.added",
+            "mutation.parent.removed",
+            "mutation.parent.attribute",
+            "mutation.parent.characterdata",
+            "mutation.child.added",
+            "mutation.child.removed",
+            "mutation.child.attribute",
+            "mutation.child.characterdata"
+        ];
+        this.#addExecuters(element, attribute, modelPath, eventTypes, possibleEventTypes, true);
+    }
+    #addToggleClassHandler(element, modelPath, possibleEventTypes) {
+        let attribute = this.attribute(this.#options.attribute.names.class);
+        let eventTypes = [
+            'track',
+            'bind',
+            'set',
+            "mutation.target.added",
+            "mutation.target.removed",
+            "mutation.target.attribute",
+            "mutation.target.characterdata",
+            "mutation.parent.added",
+            "mutation.parent.removed",
+            "mutation.parent.attribute",
+            "mutation.parent.characterdata",
+            "mutation.child.added",
+            "mutation.child.removed",
+            "mutation.child.attribute",
+            "mutation.child.characterdata"
+        ];
+        this.#addExecuters(element, attribute, modelPath, eventTypes, possibleEventTypes, true);
+    }
+    #addToggleAttributeHandler(element, modelPath, possibleEventTypes) {
+        let attribute = this.attribute(this.#options.attribute.names.toggle);
+        let eventTypes = [
+            'track',
+            'bind',
+            'set',
+            "mutation.target.added",
+            "mutation.target.removed",
+            "mutation.target.attribute",
+            "mutation.target.characterdata",
+            "mutation.parent.added",
+            "mutation.parent.removed",
+            "mutation.parent.attribute",
+            "mutation.parent.characterdata",
+            "mutation.child.added",
+            "mutation.child.removed",
+            "mutation.child.attribute",
+            "mutation.child.characterdata"
+        ];
+        this.#addExecuters(element, attribute, modelPath, eventTypes, possibleEventTypes, true);
+    }
+    #addRemoveElementHandler(element, modelPath, possibleEventTypes) {
+        let attribute = this.attribute(this.#options.attribute.names.remove);
+        let eventTypes = [
+            'unbind'
+        ];
+        this.#addExecuters(element, attribute, modelPath, eventTypes, possibleEventTypes, false);
+    }
+    #addSetAttributeHandler(element, modelPath, possibleEventTypes) {
+        let attribute = this.attribute(this.#options.attribute.names.attribute);
+        let eventTypes = [
+            'track',
+            'untrack',
+            'bind',
+            'unbind',
+            'set',
+            "mutation.target.added",
+            "mutation.target.removed",
+            "mutation.target.attribute",
+            "mutation.target.characterdata",
+            "mutation.parent.added",
+            "mutation.parent.removed",
+            "mutation.parent.attribute",
+            "mutation.parent.characterdata",
+            "mutation.child.added",
+            "mutation.child.removed",
+            "mutation.child.attribute",
+            "mutation.child.characterdata"
+        ];
+        this.#addExecuters(element, attribute, modelPath, eventTypes, possibleEventTypes, true);
+    }
+    #addExecuters(element, attribute, modelPath, eventTypes, possibleEventTypes, parseArgs) {
         if (!element.hasAttribute(attribute))
             return;
-        //Mock the model path if necessary
-        if (mockedAttributes.has(attribute)) {
-            modelPath = mockedAttributes.get(attribute);
-        }
-        else if (mockedAttributes.has("*")) {
-            modelPath = mockedAttributes.get("*");
-        }
         let args = parseArgs ? this.parseAttributeArguments(element, attribute)
             : [
                 {
@@ -1725,135 +1368,14 @@ class HydrateApp {
         }
         return args;
     }
-    #addInitHandler(element, modelPath, possibleEventTypes, mockedAttributes) {
-        let attribute = this.attribute(this.#options.attribute.names.init);
-        let eventTypes = [
-            'track',
-            'untrack',
-            'bind',
-            'unbind',
-            'set',
-            'input',
-            "on",
-            "routing.start",
-            "routing.resolve",
-            "routing.reject",
-            "mutation.target.added",
-            "mutation.target.removed",
-            "mutation.target.attribute",
-            "mutation.target.characterdata",
-            "mutation.parent.added",
-            "mutation.parent.removed",
-            "mutation.parent.attribute",
-            "mutation.parent.characterdata",
-            "mutation.child.added",
-            "mutation.child.removed",
-            "mutation.child.attribute",
-            "mutation.child.characterdata"
-        ];
-        this.#addExecuters(element, attribute, modelPath, eventTypes, possibleEventTypes, true, mockedAttributes);
-    }
-    #addSetPropertyHandler(element, modelPath, possibleEventTypes, mockedAttributes) {
-        let attribute = this.attribute(this.#options.attribute.names.property);
-        let eventTypes = [
-            'track',
-            'bind',
-            'set',
-            "mutation.target.added",
-            "mutation.target.removed",
-            "mutation.target.attribute",
-            "mutation.target.characterdata",
-            "mutation.parent.added",
-            "mutation.parent.removed",
-            "mutation.parent.attribute",
-            "mutation.parent.characterdata",
-            "mutation.child.added",
-            "mutation.child.removed",
-            "mutation.child.attribute",
-            "mutation.child.characterdata"
-        ];
-        this.#addExecuters(element, attribute, modelPath, eventTypes, possibleEventTypes, true, mockedAttributes);
-    }
-    #addToggleClassHandler(element, modelPath, possibleEventTypes, mockedAttributes) {
-        let attribute = this.attribute(this.#options.attribute.names.class);
-        let eventTypes = [
-            'track',
-            'bind',
-            'set',
-            "mutation.target.added",
-            "mutation.target.removed",
-            "mutation.target.attribute",
-            "mutation.target.characterdata",
-            "mutation.parent.added",
-            "mutation.parent.removed",
-            "mutation.parent.attribute",
-            "mutation.parent.characterdata",
-            "mutation.child.added",
-            "mutation.child.removed",
-            "mutation.child.attribute",
-            "mutation.child.characterdata"
-        ];
-        this.#addExecuters(element, attribute, modelPath, eventTypes, possibleEventTypes, true, mockedAttributes);
-    }
-    #addToggleAttributeHandler(element, modelPath, possibleEventTypes, mockedAttributes) {
-        let attribute = this.attribute(this.#options.attribute.names.toggle);
-        let eventTypes = [
-            'track',
-            'bind',
-            'set',
-            "mutation.target.added",
-            "mutation.target.removed",
-            "mutation.target.attribute",
-            "mutation.target.characterdata",
-            "mutation.parent.added",
-            "mutation.parent.removed",
-            "mutation.parent.attribute",
-            "mutation.parent.characterdata",
-            "mutation.child.added",
-            "mutation.child.removed",
-            "mutation.child.attribute",
-            "mutation.child.characterdata"
-        ];
-        this.#addExecuters(element, attribute, modelPath, eventTypes, possibleEventTypes, true, mockedAttributes);
-    }
-    #addRemoveElementHandler(element, modelPath, possibleEventTypes, mockedAttributes) {
-        let attribute = this.attribute(this.#options.attribute.names.remove);
-        let eventTypes = [
-            'unbind'
-        ];
-        this.#addExecuters(element, attribute, modelPath, eventTypes, possibleEventTypes, false, mockedAttributes);
-    }
-    #addSetAttributeHandler(element, modelPath, possibleEventTypes, mockedAttributes) {
-        let attribute = this.attribute(this.#options.attribute.names.attribute);
-        let eventTypes = [
-            'track',
-            'untrack',
-            'bind',
-            'unbind',
-            'set',
-            "mutation.target.added",
-            "mutation.target.removed",
-            "mutation.target.attribute",
-            "mutation.target.characterdata",
-            "mutation.parent.added",
-            "mutation.parent.removed",
-            "mutation.parent.attribute",
-            "mutation.parent.characterdata",
-            "mutation.child.added",
-            "mutation.child.removed",
-            "mutation.child.attribute",
-            "mutation.child.characterdata"
-        ];
-        this.#addExecuters(element, attribute, modelPath, eventTypes, possibleEventTypes, true, mockedAttributes);
-    }
-    #addInputHandler(element, modelPath, possibleEventTypes, mockedAttributes) {
+    #addInputHandler(element, modelPath, possibleEventTypes) {
         let attribute = this.attribute(this.#options.attribute.names.input);
         let eventTypes = [
             "input"
         ];
-        this.#addExecuters(element, attribute, modelPath, eventTypes, possibleEventTypes, true, mockedAttributes);
+        this.#addExecuters(element, attribute, modelPath, eventTypes, possibleEventTypes, true);
     }
-    #addExecuteEventCallbackHandler(element, modelPath, possibleEventTypes, mockedAttributes) {
+    #addExecuteEventCallbackHandler(element, modelPath, possibleEventTypes) {
         let attribute = this.attribute(this.#options.attribute.names.event);
         let eventTypes = [
             'track',
@@ -1879,21 +1401,21 @@ class HydrateApp {
             "mutation.child.attribute",
             "mutation.child.characterdata"
         ];
-        this.#addExecuters(element, attribute, modelPath, eventTypes, possibleEventTypes, true, mockedAttributes);
+        this.#addExecuters(element, attribute, modelPath, eventTypes, possibleEventTypes, true);
     }
-    #addElementEventListenersHandler(element, modelPath, possibleEventTypes, mockedAttributes) {
+    #addElementEventListenersHandler(element, modelPath, possibleEventTypes) {
         let attribute = this.attribute(this.#options.attribute.names.on);
         let eventTypes = [
             "on"
         ];
-        let args = this.#addExecuters(element, attribute, modelPath, eventTypes, possibleEventTypes, true, mockedAttributes);
+        let args = this.#addExecuters(element, attribute, modelPath, eventTypes, possibleEventTypes, true);
         if (args == null)
             return;
         for (let arg of args) {
             this.#addOnAttributeEventListener(element, arg.field);
         }
     }
-    #addGenerateComponentHandler(element, modelPath, possibleEventTypes, mockedAttributes) {
+    #addGenerateComponentHandler(element, modelPath, possibleEventTypes) {
         let attribute = this.attribute(this.#options.attribute.names.component);
         let eventTypes = [
             'track',
@@ -1915,18 +1437,7 @@ class HydrateApp {
             "mutation.child.attribute",
             "mutation.child.characterdata"
         ];
-        this.#addExecuters(element, attribute, modelPath, eventTypes, possibleEventTypes, false, mockedAttributes);
-    }
-    #addMockAttributeHandler(element, modelPath) {
-        let attribute = this.attribute(this.#options.attribute.names.mock);
-        let eventTypes = [
-            'track',
-            'bind',
-            'set',
-            "mutation.target.attribute"
-        ];
-        //override the possible types with the event types because it will always be these
-        return this.#addExecuters(element, attribute, modelPath, eventTypes, eventTypes, false, new Map())?.length > 0;
+        this.#addExecuters(element, attribute, modelPath, eventTypes, possibleEventTypes, true);
     }
     #getTrackableElements(target) {
         if (target == null)
@@ -1939,12 +1450,7 @@ class HydrateApp {
     }
     get #trackableElementSelector() {
         let modelAttribute = this.attribute(this.#options.attribute.names.model);
-        return `:not(template)[${modelAttribute}]`;
-    }
-    get #componentTemplateSelector() {
-        const templateAttribute = this.attribute(this.#options.attribute.names.template);
-        const sourceAttribute = this.attribute(this.#options.attribute.names.source);
-        return `template[${templateAttribute}],template[${sourceAttribute}]`;
+        return `[${modelAttribute}]`;
     }
     #getExcecuters(eventType, targets = [], propPath = undefined) {
         let details = this.#determineEventDetailProperties(propPath, "property");
@@ -2013,7 +1519,6 @@ class HydrateApp {
         }
         else
             elements = this.#getTrackableElements(target);
-        elements = this.#appendShadowDomElements(elements);
         let elementExecuters = this.#getExcecuters(eventType, elements, propPath);
         for (let element of elementExecuters.keys()) {
             let modelExecuters = elementExecuters.get(element);
@@ -2029,18 +1534,6 @@ class HydrateApp {
             console.timeEnd(dispatchTimer);
         }
         return listenerEvent.defaultPrevented;
-    }
-    #appendShadowDomElements(elements) {
-        if (elements == null)
-            return null;
-        const results = [];
-        for (let element of elements) {
-            results.push(element);
-            if (element.shadowRoot)
-                //@ts-ignore because will assume all of the child elements are html elements
-                results.push(...element.shadowRoot.children);
-        }
-        return results;
     }
     #throttle(eventType, element, propPath, detail, target, data) {
         let throttleAttribute = this.attribute(this.#options.attribute.names.throttle);
@@ -2066,6 +1559,7 @@ class HydrateApp {
             };
             delayHandlers.set(eventType, dispatch);
             dispatch.timeout = setTimeout(() => {
+                console.log("timeout reached");
                 let dispatch = app.#elementHandlerDelays?.get(element)?.get(eventType);
                 if (dispatch == null)
                     return;
@@ -2128,6 +1622,7 @@ class HydrateApp {
         };
         delayHandlers.set(eventType, dispatch);
         dispatch.timeout = setTimeout(() => {
+            console.log("timeout reached");
             let dispatch = app.#elementHandlerDelays?.get(element)?.get(eventType);
             if (dispatch == null)
                 return;
@@ -2148,6 +1643,7 @@ class HydrateApp {
         let delay = this.#parseDelayMs(detail, arg);
         const app = this;
         setTimeout(() => {
+            console.log("timeout reached");
             let modelExecuters = app.#getExcecuters(eventType, [element], propPath)?.get(element);
             app.#dispatchDomEvents(eventType, element, modelExecuters, propPath, detail, target, data);
         }, delay);
@@ -2157,6 +1653,9 @@ class HydrateApp {
         if (modelExecuters == null)
             return;
         for (let modelPath of modelExecuters.keys()) {
+            // let nameIndex = property.indexOf(".");
+            // let rootModelName = nameIndex < 0 ? property : property.substring(0, nameIndex);
+            // let state = this.state(rootModelName);
             let event;
             if (propPath === modelPath) {
                 event = this.#createEvent(element, eventType, this.#determineEventDetailProperties(propPath, "model"), null, data);
@@ -2170,39 +1669,14 @@ class HydrateApp {
                 let nestedEvent = this.#createEvent(target, eventType, this.#determineEventDetailProperties(propPath, "property"), null, data);
                 event = this.#createEvent(element, eventType, this.#determineEventDetailProperties(modelPath, "model"), nestedEvent.detail, data);
             }
-            if (!this.#shouldUpdateComponent(event))
-                continue;
             for (let executer of modelExecuters.get(modelPath)) {
                 try {
-                    if (!element.isConnected)
-                        continue;
                     executer.handler(executer.arg, event.detail);
                 }
                 catch (error) {
                     console.error(error);
                 }
             }
-        }
-    }
-    #shouldUpdateComponent(event) {
-        const detail = event.detail;
-        const ifAttribute = this.attribute(this.#options.attribute.names.if);
-        let args = this.parseAttributeArguments(detail.element, ifAttribute);
-        const condition = detail.element.getAttribute(ifAttribute);
-        if (args == null || args.length === 0)
-            return true;
-        try {
-            for (let arg of args) {
-                if (arg.field !== "*" && arg.field !== detail.type)
-                    continue;
-                if (!this.resolveArgumentValue(detail, arg, null))
-                    return false;
-            }
-            return true;
-        }
-        catch (error) {
-            console.error(error);
-            return false;
         }
     }
     #createEvent(target, eventType, properties, nested, data) {
